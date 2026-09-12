@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>抽選ページ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+  <h1>抽選ページ</h1>
+  <p>抽選ボタンを押して景品を確認してください。</p>
+
+  <button id="start">抽選する</button>
+
+  <div id="result" style="margin-top:20px; font-size:20px;"></div>
+
+  <button id="confirm" style="display:none; margin-top:20px;">
+    説明員が確認しました
+  </button>
+
+  <script>
+    // どちらのページから来たか判定
+    const userType = localStorage.getItem('userType');
+
+    // ボーナス値（確率UP）
+    let bonus = 0;
+
+    if (userType === 'general') {
+      const qrCount = Number(localStorage.getItem('qrCount') || 0);
+      const quizCorrect = Number(localStorage.getItem('quizCorrect') || 0);
+      bonus = qrCount + quizCorrect;
+    } else if (userType === 'student') {
+      const surveyCount = Number(localStorage.getItem('surveyCount') || 0);
+      bonus = surveyCount;
+    }
+
+    // 景品の初期在庫
+    const defaultStock = {
+      microSD: 1,
+      bottle: 1,
+      tote: 300,
+      memo500: 500,
+      memo100: 100
+    };
+
+    // 初回アクセス時に在庫をセット
+    if (!localStorage.getItem('stock')) {
+      localStorage.setItem('stock', JSON.stringify(defaultStock));
+    }
+
+    // 抽選処理
+    document.getElementById('start').addEventListener('click', () => {
+
+      let baseProbability = 0.05; // 基本確率
+      let probability = Math.min(baseProbability + bonus * 0.02, 0.9);
+
+      const stock = JSON.parse(localStorage.getItem('stock'));
+      const rand = Math.random();
+
+      let prize = "";
+
+      if (rand < probability && stock.microSD > 0) {
+        prize = "マイクロSDカード";
+        stock.microSD--;
+      } else if (rand < probability && stock.bottle > 0) {
+        prize = "水筒";
+        stock.bottle--;
+      } else if (stock.tote > 0) {
+        prize = "トートバッグ";
+        stock.tote--;
+      } else if (stock.memo500 > 0) {
+        prize = "SDカード型メモ";
+        stock.memo500--;
+      } else if (stock.memo100 > 0) {
+        prize = "SDカード型";
+        stock.memo100--;
+      } else {
+        prize = "景品終了";
+      }
+
+      localStorage.setItem('stock', JSON.stringify(stock));
+
+      document.getElementById('result').textContent = "抽選結果： " + prize;
+      document.getElementById('confirm').style.display = "block";
+    });
+
+    // 説明員確認
+    document.getElementById('confirm').addEventListener('click', () => {
+      localStorage.setItem('received', 'yes');
+      alert("受け取り済みにしました");
+    });
+  </script>
+
+</body>
+</html>
