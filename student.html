@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>学生向けページ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+  <h1>学生向け 抽選参加ページ</h1>
+  <p>アンケートに回答すると抽選確率が上がります。</p>
+
+  <form id="survey">
+    <label>Q1：展示会はどうでしたか？</label>
+    <input type="text"><br>
+
+    <label>Q2：興味のある技術は？</label>
+    <input type="text"><br>
+
+    <label>Q3：将来やってみたい仕事は？</label>
+    <input type="text"><br>
+
+    <button type="submit">回答して抽選へ進む</button>
+  </form>
+
+  <script>
+    document.getElementById('survey').addEventListener('submit', function(e){
+      e.preventDefault();
+
+      let count = localStorage.getItem('surveyCount') || 0;
+      count++;
+      localStorage.setItem('surveyCount', count);
+
+      localStorage.setItem('userType','student');
+      location.href = 'lottery.html';
+    });
+  </script>
+
+</body>
+</html>
