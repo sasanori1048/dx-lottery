@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>クイズページ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+  <h1>展示物クイズ</h1>
+  <p id="question">読み込み中...</p>
+
+  <input type="text" id="answerInput" placeholder="答えを入力">
+  <button id="submitBtn">回答する</button>
+
+  <p id="feedback" style="margin-top:20px; font-size:18px;"></p>
+
+  <button id="nextBtn" style="display:none; margin-top:20px;">
+    抽選ページへ進む
+  </button>
+
+  <script>
+    // URLの ?content=◯◯ を取得
+    const params = new URLSearchParams(location.search);
+    const contentId = params.get("content");
+
+    // 展示物ごとの問題
+    const quizData = {
+      "1": { q: "展示物1：ロボットの特徴は？", a: "AI制御" },
+      "2": { q: "展示物2：AIの用途は？", a: "画像認識" },
+      "3": { q: "展示物3：セキュリティの重要ポイントは？", a: "フィッシング対策" },
+      "4": { q: "展示物4：DXの目的は？", a: "業務効率化" },
+      "5": { q: "展示物5：クラウドの利点は？", a: "拡張性" },
+      "6": { q: "展示物6：IoTの役割は？", a: "データ収集" },
+      "7": { q: "展示物7：5Gの特徴は？", a: "高速通信" },
+      "8": { q: "展示物8：ARの用途は？", a: "可視化" }
+    };
+
+    // 該当IDがなければデフォルト問題
+    const quiz = quizData[contentId] || {
+      q: "展示会の感想を教えてください！",
+      a: ""
+    };
+
+    document.getElementById("question").textContent = quiz.q;
+
+    // 回答処理
+    document.getElementById("submitBtn").addEventListener("click", () => {
+      const userAnswer = document.getElementById("answerInput").value.trim();
+      const feedback = document.getElementById("feedback");
+
+      if (quiz.a === "") {
+        feedback.textContent = "回答ありがとうございました！";
+      } else if (userAnswer === quiz.a) {
+        feedback.textContent = "正解！";
+        let correct = Number(localStorage.getItem("quizCorrect") || 0);
+        correct++;
+        localStorage.setItem("quizCorrect", correct);
+      } else {
+        feedback.textContent = "不正解…";
+      }
+
+      document.getElementById("nextBtn").style.display = "block";
+    });
+
+    // 抽選ページへ
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      location.href = "lottery.html";
+    });
+  </script>
+
+</body>
+</html>
