@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>一般向けページ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+  <h1>一般向け 抽選参加ページ</h1>
+  <p>展示物のQRコードを読み取るとポイントが増えます。</p>
+
+  <div id="qr-count">
+    読み取ったQRコード数：<span id="count">0</span>
+  </div>
+
+  <button onclick="localStorage.setItem('userType','general'); location.href='quiz.html'">
+    クイズに進む
+  </button>
+
+  <script>
+    const count = localStorage.getItem('qrCount') || 0;
+    document.getElementById('count').textContent = count;
+  </script>
+
+</body>
+</html>
