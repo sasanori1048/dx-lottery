@@ -83,8 +83,8 @@
         q1,
         q2,
         q3,
-        timestamp: new Date(),
-        prize: prize
+        received: localStorage.getItem("received") || "no",
+        timestamp: new Date()
       });
 
       // localStorage に保存（lottery.html で表示用）
