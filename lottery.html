@@ -144,6 +144,9 @@
 
     document.getElementById('start').addEventListener('click', async () => {
 
+      // ★ 前回の抽選の lastDocId をクリア（これが超重要）
+      localStorage.removeItem("lastDocId");
+
       let probability = Math.min(0.05 + bonus * 0.02, 0.9);
       const rand = Math.random();
 
@@ -222,11 +225,26 @@
 
       alert("確認を記録しました。");
 
-      const lastDocId = localStorage.getItem("lastDocId");
-      if (!lastDocId) {
-        alert("ドキュメントIDが見つかりません。抽選を先に行ってください。");
-        return;
+      let lastDocId = localStorage.getItem("lastDocId");
+      let docRef;
+
+      if (lastDocId) {
+        // localStorage に ID がある → そのドキュメントを使う
+        docRef = doc(db, "survey", lastDocId);
+      } else {
+        // localStorage が空 → Firestore から最新のドキュメントを取得
+        const snapshot = await getDocs(collection(db, "survey"));
+        const docs = snapshot.docs;
+        const lastDoc = docs[docs.length - 1];
+
+        if (!lastDoc) {
+          alert("抽選データがありません。抽選を先に行ってください。");
+          return;
+        }
+
+        docRef = doc(db, "survey", lastDoc.id);
       }
+
 
       // entryCounter ドキュメントを使って連番を管理
       const counterRef = doc(db, "meta", "entryCounter");
@@ -240,7 +258,6 @@
         await setDoc(counterRef, { lastNumber: 1 });
       }
       // 抽選結果を更新（景品は上書きしない）
-      const docRef = doc(db, "survey", lastDocId);
       await updateDoc(docRef, {
         received: "yes",
         entryNumber: entryNumber
