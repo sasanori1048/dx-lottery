@@ -15,7 +15,8 @@
 
   <div id="result" style="margin-top:20px; font-size:20px;"></div>
 
-  <button id="confirm" style="display:none; margin-top:20px;">
+  <!-- 抽選後に表示されるスタッフ確認ボタン -->
+  <button id="staffConfirm" style="display:none; margin-top:20px;">
     説明員が確認しました
   </button>
 
@@ -44,7 +45,6 @@
       memo100: 100
     };
 
-    // 初回アクセス時に在庫をセット
     if (!localStorage.getItem('stock')) {
       localStorage.setItem('stock', JSON.stringify(defaultStock));
     }
@@ -52,7 +52,7 @@
     // 抽選処理
     document.getElementById('start').addEventListener('click', () => {
 
-      let baseProbability = 0.05; // 基本確率
+      let baseProbability = 0.05; 
       let probability = Math.min(baseProbability + bonus * 0.02, 0.9);
 
       const stock = JSON.parse(localStorage.getItem('stock'));
@@ -82,14 +82,22 @@
       localStorage.setItem('stock', JSON.stringify(stock));
 
       document.getElementById('result').textContent = "抽選結果： " + prize;
-      document.getElementById('confirm').style.display = "block";
+
+      // スタッフ確認ボタンを表示
+      document.getElementById('staffConfirm').style.display = "block";
     });
 
-    // 説明員確認
-    document.getElementById('confirm').addEventListener('click', () => {
-      localStorage.setItem('received', 'yes');
-      alert("受け取り済みにしました");
+    // スタッフ確認コード処理
+    document.getElementById("staffConfirm").addEventListener("click", () => {
+      const code = prompt("スタッフ確認コードを入力してください:");
+      if (code === "DX2026") {
+        localStorage.setItem("received", "yes");
+        alert("確認を記録しました。");
+      } else {
+        alert("コードが違います。スタッフのみ操作可能です。");
+      }
     });
+
   </script>
 
 </body>
