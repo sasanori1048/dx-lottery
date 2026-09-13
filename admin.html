@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>管理者画面（アンケート一覧）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>管理者画面（アンケート一覧）</h1>
+  <p>Firestore に保存された回答を一覧表示します。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Q1</th>
+        <th>Q2</th>
+        <th>Q3</th>
+        <th>回答日時</th>
+      </tr>
+    </thead>
+    <tbody id="surveyList"></tbody>
+  </table>
+
+  <!-- Firebase v10 モジュール構文 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
+      authDomain: "dx-lottery.firebaseapp.com",
+      projectId: "dx-lottery",
+      storageBucket: "dx-lottery.firebasestorage.app",
+      messagingSenderId: "13800927311",
+      appId: "1:13800927311:web:633a52a3919394c6f9ba3a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadSurvey() {
+      const list = document.getElementById("surveyList");
+      list.innerHTML = "";
+
+      const querySnapshot = await getDocs(collection(db, "survey"));
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${data.q1}</td>
+          <td>${data.q2}</td>
+          <td>${data.q3}</td>
+          <td>${data.timestamp?.toDate().toLocaleString()}</td>
+        `;
+
+        list.appendChild(tr);
+      });
+    }
+
+    loadSurvey();
+  </script>
+
+</body>
+</html>
