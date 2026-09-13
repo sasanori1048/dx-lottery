@@ -12,18 +12,20 @@
   <p>抽選ボタンを押して景品を確認してください。</p>
 
   <button id="start">抽選する</button>
-
   <div id="result" style="margin-top:20px; font-size:20px;"></div>
 
   <button id="staffConfirm" style="display:none; margin-top:20px;">
     説明員が確認しました
   </button>
 
-  <!-- ✅ Firebase v10 モジュール構文 -->
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+    /* ------------------------------
+       ① Firebase 初期化（触らない）
+    ------------------------------ */
     const firebaseConfig = {
       apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
       authDomain: "dx-lottery.firebaseapp.com",
@@ -36,17 +38,17 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // どちらのページから来たか判定
+    /* ------------------------------
+       ② 抽選ロジック（景品だけ触る）
+    ------------------------------ */
     const userType = localStorage.getItem('userType');
 
     let bonus = 0;
     if (userType === 'general') {
-      const qrCount = Number(localStorage.getItem('qrCount') || 0);
-      const quizCorrect = Number(localStorage.getItem('quizCorrect') || 0);
-      bonus = qrCount + quizCorrect;
+      bonus = Number(localStorage.getItem('qrCount') || 0)
+            + Number(localStorage.getItem('quizCorrect') || 0);
     } else if (userType === 'student') {
-      const surveyCount = Number(localStorage.getItem('surveyCount') || 0);
-      bonus = surveyCount;
+      bonus = Number(localStorage.getItem('surveyCount') || 0);
     }
 
     const defaultStock = {
@@ -61,34 +63,20 @@
       localStorage.setItem('stock', JSON.stringify(defaultStock));
     }
 
-    // 抽選処理
     document.getElementById('start').addEventListener('click', async () => {
-      let baseProbability = 0.05; 
-      let probability = Math.min(baseProbability + bonus * 0.02, 0.9);
 
+      let probability = Math.min(0.05 + bonus * 0.02, 0.9);
       const stock = JSON.parse(localStorage.getItem('stock'));
       const rand = Math.random();
 
       let prize = "";
 
-      if (rand < probability && stock.microSD > 0) {
-        prize = "マイクロSDカード";
-        stock.microSD--;
-      } else if (rand < probability && stock.bottle > 0) {
-        prize = "水筒";
-        stock.bottle--;
-      } else if (stock.tote > 0) {
-        prize = "トートバッグ";
-        stock.tote--;
-      } else if (stock.memo500 > 0) {
-        prize = "SDカード型メモ";
-        stock.memo500--;
-      } else if (stock.memo100 > 0) {
-        prize = "SDカード型付箋";
-        stock.memo100--;
-      } else {
-        prize = "景品終了";
-      }
+      if (rand < probability && stock.microSD > 0) prize = "マイクロSDカード", stock.microSD--;
+      else if (rand < probability && stock.bottle > 0) prize = "水筒", stock.bottle--;
+      else if (stock.tote > 0) prize = "トートバッグ", stock.tote--;
+      else if (stock.memo500 > 0) prize = "SDカード型メモ", stock.memo500--;
+      else if (stock.memo100 > 0) prize = "SDカード型付箋", stock.memo100--;
+      else prize = "景品終了";
 
       localStorage.setItem('stock', JSON.stringify(stock));
       localStorage.setItem('prize', prize);
@@ -96,40 +84,46 @@
       document.getElementById('result').textContent = "抽選結果： " + prize;
       document.getElementById('staffConfirm').style.display = "block";
 
-      // ✅ Firestoreに抽選結果を保存
-      await addDoc(collection(db, "survey"), {
+      // Firestoreに抽選結果を保存
+      const docRef = await addDoc(collection(db, "survey"), {
         prize: prize,
         userType: userType,
         received: "no",
         timestamp: new Date()
       });
+
+      // ドキュメントIDを保存
+      localStorage.setItem("lastDocId", docRef.id);
     });
 
-    // スタッフ確認コード処理
+    /* ------------------------------
+       ③ スタッフ確認（確認ロジックだけ触る）
+    ------------------------------ */
     document.getElementById("staffConfirm").addEventListener("click", async () => {
       const code = prompt("スタッフ確認コードを入力してください:");
-      if (code === "DX2026") {
-        localStorage.setItem("received", "yes");
-        alert("確認を記録しました。");
-
-        // Firestoreの最新ドキュメントを取得して更新
-        const snapshot = await getDocs(collection(db, "survey"));
-        const docs = snapshot.docs;
-        const lastDoc = docs[docs.length - 1]; // 最新の回答データ
-
-        if (lastDoc) {
-          const docRef = doc(db, "survey", lastDoc.id);
-          const entryNumber = docs.length; // 入場者番号（連番）
-
-          await updateDoc(docRef, {
-            received: "yes",
-            entryNumber: entryNumber
-          });
-        }
-      } else {
+      if (code !== "DX2026") {
         alert("コードが違います。スタッフのみ操作可能です。");
+        return;
       }
+
+      alert("確認を記録しました。");
+
+      const lastDocId = localStorage.getItem("lastDocId");
+      if (!lastDocId) {
+        alert("ドキュメントIDが見つかりません。抽選を先に行ってください。");
+        return;
+      }
+
+      const snapshot = await getDocs(collection(db, "survey"));
+      const entryNumber = snapshot.size;
+
+      const docRef = doc(db, "survey", lastDocId);
+      await updateDoc(docRef, {
+        received: "yes",
+        entryNumber: entryNumber
+      });
     });
+
   </script>
 
 </body>
