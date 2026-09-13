@@ -38,6 +38,30 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    import { getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    // 在庫を取得する
+    async function getStock(itemId) {
+      const ref = doc(db, "stock", itemId);
+      const snap = await getDoc(ref);
+      return snap.exists() ? snap.data().count : 0;
+    }
+
+    // 在庫を1つ減らす
+    async function decreaseStock(itemId) {
+      const ref = doc(db, "stock", itemId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const current = snap.data().count;
+        if (current > 0) {
+          await updateDoc(ref, { count: current - 1 });
+          return true;
+        }
+      }
+      return false;
+    }
+
+    
     /* ------------------------------
        ② 抽選ロジック（景品だけ触る）
     ------------------------------ */
@@ -66,28 +90,41 @@
     document.getElementById('start').addEventListener('click', async () => {
 
       let probability = Math.min(0.05 + bonus * 0.02, 0.9);
-      const stock = JSON.parse(localStorage.getItem('stock'));
       const rand = Math.random();
 
       let prize = "";
 
-      if (rand < probability && stock.microSD > 0) prize = "マイクロSDカード", stock.microSD--;
-      else if (rand < probability && stock.bottle > 0) prize = "水筒", stock.bottle--;
-      else if (stock.tote > 0) prize = "トートバッグ", stock.tote--;
-      else if (stock.memo500 > 0) prize = "SDカード型メモ", stock.memo500--;
-      else if (stock.memo100 > 0) prize = "SDカード型付箋", stock.memo100--;
-      else prize = "景品終了";
+      if (rand < probability && await getStock("microSD") > 0) {
+        prize = "マイクロSDカード";
+        await decreaseStock("microSD");
 
-      localStorage.setItem('stock', JSON.stringify(stock));
-      localStorage.setItem('prize', prize);
+      } else if (rand < probability && await getStock("bottle") > 0) {
+        prize = "水筒";
+        await decreaseStock("bottle");
+
+      } else if (await getStock("tote") > 0) {
+        prize = "トートバッグ";
+        await decreaseStock("tote");
+
+      } else if (await getStock("memo500") > 0) {
+        prize = "SDカード型メモ";
+        await decreaseStock("memo500");
+
+      } else if (await getStock("memo100") > 0) {
+        prize = "SDカード型付箋";
+        await decreaseStock("memo100");
+
+      } else {
+        prize = "景品終了";
+      }
 
       document.getElementById('result').textContent = "抽選結果： " + prize;
       document.getElementById('staffConfirm').style.display = "block";
 
-      // Firestoreの最新アンケートを更新（統合）
+      // ここから下は、今まで通りのアンケート統合処理でOK
       const snapshot = await getDocs(collection(db, "survey"));
       const docs = snapshot.docs;
-      const lastDoc = docs[docs.length - 1]; // 最新のアンケート回答
+      const lastDoc = docs[docs.length - 1];
 
       if (lastDoc) {
         const docRef = doc(db, "survey", lastDoc.id);
@@ -96,11 +133,10 @@
           received: "no",
           timestamp: new Date()
         });
-
-        // ドキュメントIDを保存（スタッフ確認で使う）
         localStorage.setItem("lastDocId", lastDoc.id);
-     }
-     }); 
+      }
+    });
+
 
     /* ------------------------------
        ③ スタッフ確認（確認ロジックだけ触る）
