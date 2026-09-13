@@ -48,21 +48,36 @@
   </form>
 
   <script>
-    document.getElementById('survey').addEventListener('submit', function(e){
-      e.preventDefault();
+    
+    document.getElementById('survey').addEventListener('submit', async function(e){
+    e.preventDefault();
 
-      // 回答回数をlocalStorageに保存
-      let count = localStorage.getItem('surveyCount') || 0;
-      count++;
-      localStorage.setItem('surveyCount', count);
+    // 回答内容を取得
+    const q1 = document.querySelector('input[name="q1"]:checked')?.value || "";
+    const q2 = document.querySelector('input[name="q2"]:checked')?.value || "";
+    const q3 = document.querySelector('input[name="q3"]:checked')?.value || "";
 
-      // 学生ルートであることを記録
-      localStorage.setItem('userType','student');
-
-      // 抽選ページへ
-      location.href = 'lottery.html';
+    // Firestore に保存
+    await db.collection("survey").add({
+      q1: q1,
+      q2: q2,
+      q3: q3,
+      timestamp: new Date()
     });
-  </script>
+
+    // 回答回数をlocalStorageに保存
+    let count = localStorage.getItem('surveyCount') || 0;
+    count++;
+    localStorage.setItem('surveyCount', count);
+
+    // 学生ルートであることを記録
+    localStorage.setItem('userType','student');
+
+    // 抽選ページへ
+    location.href = 'lottery.html';
+  });
+</script>
+
 
 </body>
 </html>
