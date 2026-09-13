@@ -1,14 +1,36 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Firestore 在庫初期化</title>
+</head>
+<body>
+  <h1>Firestore 在庫初期化ページ</h1>
+  <p>このページを開くと在庫データが登録されます。</p>
 
-const firebaseConfig = { /* あなたの設定 */ };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-await setDoc(doc(db, "stock", "microSD"), { name: "マイクロSDカード", count: 1 });
-await setDoc(doc(db, "stock", "bottle"), { name: "水筒", count: 1 });
-await setDoc(doc(db, "stock", "tote"), { name: "トートバッグ", count: 300 });
-await setDoc(doc(db, "stock", "memo500"), { name: "SDカード型メモ", count: 500 });
-await setDoc(doc(db, "stock", "memo100"), { name: "SDカード型付箋", count: 100 });
+    const firebaseConfig = {
+      apiKey: "あなたのAPIキー",
+      authDomain: "dx-lottery.firebaseapp.com",
+      projectId: "dx-lottery",
+      storageBucket: "dx-lottery.firebasestorage.app",
+      messagingSenderId: "13800927311",
+      appId: "1:13800927311:web:633a52a3919394c6f9ba3a"
+    };
 
-alert("在庫初期化完了");
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    await setDoc(doc(db, "stock", "microSD"), { name: "マイクロSDカード", count: 1 });
+    await setDoc(doc(db, "stock", "bottle"), { name: "水筒", count: 1 });
+    await setDoc(doc(db, "stock", "tote"), { name: "トートバッグ", count: 300 });
+    await setDoc(doc(db, "stock", "memo500"), { name: "SDカード型メモ", count: 500 });
+    await setDoc(doc(db, "stock", "memo100"), { name: "SDカード型付箋", count: 100 });
+
+    alert("在庫初期化完了！");
+  </script>
+</body>
+</html>
