@@ -31,6 +31,8 @@
         <th>Q1</th>
         <th>Q2</th>
         <th>Q3</th>
+        <th>景品</th>
+        <th>確認済み</th>
         <th>回答日時</th>
       </tr>
     </thead>
@@ -68,6 +70,8 @@
           <td>${data.q1}</td>
           <td>${data.q2}</td>
           <td>${data.q3}</td>
+          <td>${data.prize || "-"}</td>
+          <td>${data.received === "yes" ? "✔" : ""}</td>
           <td>${data.timestamp?.toDate().toLocaleString()}</td>
         `;
 
