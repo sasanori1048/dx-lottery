@@ -33,7 +33,6 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
     const firebaseConfig = {
       apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
       authDomain: "dx-lottery.firebaseapp.com",
@@ -53,13 +52,29 @@
       const q2 = document.querySelector('input[name="q2"]:checked')?.value || "";
       const q3 = document.querySelector('input[name="q3"]:checked')?.value || "";
 
+      // 🎯 抽選ロジック（例：20%で当たり）
+      const rand = Math.random();
+      const isWin = rand < 0.2;   // 20%当たり
+
+      // Firestore に保存（抽選結果も含む）
       await addDoc(collection(db, "survey"), {
-        q1, q2, q3, timestamp: new Date()
+        q1,
+        q2,
+        q3,
+        timestamp: new Date(),
+        result: isWin ? "当たり" : "はずれ"
       });
 
-      localStorage.setItem('userType', 'student');
+      // localStorage に抽選結果を保存（lottery.html で表示する用）
+      localStorage.setItem("isWin", isWin);
+
+      // 学生ルートであることを記録
+      localStorage.setItem('userType','student');
+
+      // 抽選ページへ遷移
       location.href = 'lottery.html';
     });
   </script>
+
 </body>
 </html>
