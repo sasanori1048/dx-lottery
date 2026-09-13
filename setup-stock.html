@@ -1,0 +1,14 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const firebaseConfig = { /* あなたの設定 */ };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+await setDoc(doc(db, "stock", "microSD"), { name: "マイクロSDカード", count: 1 });
+await setDoc(doc(db, "stock", "bottle"), { name: "水筒", count: 1 });
+await setDoc(doc(db, "stock", "tote"), { name: "トートバッグ", count: 300 });
+await setDoc(doc(db, "stock", "memo500"), { name: "SDカード型メモ", count: 500 });
+await setDoc(doc(db, "stock", "memo100"), { name: "SDカード型付箋", count: 100 });
+
+alert("在庫初期化完了");
