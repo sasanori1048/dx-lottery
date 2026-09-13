@@ -13,6 +13,10 @@
 
   <button id="start">抽選する</button>
   <div id="result" style="margin-top:20px; font-size:20px;"></div>
+  <div id="hotBanner">🔥 激熱チャンス！残りわずか！ 🔥</div>
+  <div id="rareBanner">🎉 超レア景品当選！ 🎉</div>
+
+  <audio id="rareSound" src="rare.mp3"></audio>
 
   <button id="staffConfirm" style="display:none; margin-top:20px;">
     説明員が確認しました
@@ -59,8 +63,71 @@
       }
       return false;
     }
+    async function checkHot(itemId) {
+      const stock = await getStock(itemId);
 
-    
+      // 🔥 在庫10以下 → 激熱
+      if (stock <= 10 && stock > 5) {
+        document.body.classList.add("hot-flash");
+        const banner = document.getElementById("hotBanner");
+        banner.textContent = "🔥 激熱チャンス！残りわずか！ 🔥";
+        banner.style.display = "block";
+
+        setTimeout(() => {
+          document.body.classList.remove("hot-flash");
+          banner.style.display = "none";
+        }, 1500);
+      }
+
+      // 🔥 在庫5以下 → 超激熱
+      if (stock <= 5 && stock > 1) {
+        const banner = document.getElementById("hotBanner");
+        banner.textContent = "🔥🔥 超激熱！残り5以下！ 🔥🔥";
+        banner.style.display = "block";
+
+        document.getElementById("start").classList.add("hot-shake");
+
+        setTimeout(() => {
+          document.getElementById("start").classList.remove("hot-shake");
+          banner.style.display = "none";
+        }, 2000);
+      }
+
+      // ✨ 在庫1 → ラスト1演出
+      if (stock === 1) {
+        const banner = document.getElementById("hotBanner");
+        banner.textContent = "✨✨ ラスト1！超プレミア！ ✨✨";
+        banner.style.display = "block";
+
+        document.body.classList.add("hot-flash");
+
+        setTimeout(() => {
+          document.body.classList.remove("hot-flash");
+          banner.style.display = "none";
+        }, 2500);
+      }
+    }
+    function rareEffect() {
+      document.body.classList.add("rare-flash");
+      setTimeout(() => document.body.classList.remove("rare-flash"), 1000);
+    }
+
+    function showRareBanner() {
+      const banner = document.getElementById("rareBanner");
+      banner.style.display = "block";
+      setTimeout(() => banner.style.display = "none", 2500);
+    }
+
+    function rareButtonEffect() {
+      const btn = document.getElementById("start");
+      btn.classList.add("rare-button");
+      setTimeout(() => btn.classList.remove("rare-button"), 2500);
+    }
+
+    function playRareSound() {
+      document.getElementById("rareSound").play();
+    }
+
     /* ------------------------------
        ② 抽選ロジック（景品だけ触る）
     ------------------------------ */
@@ -84,15 +151,33 @@
 
       if (rand < probability && await getStock("microSD") > 0) {
         prize = "マイクロSDカード";
+
+        // ✨ レア演出
+        rareEffect();
+        showRareBanner();
+        rareButtonEffect();
+        playRareSound();
+
         await decreaseStock("microSD");
-
-      } else if (rand < probability && await getStock("bottle") > 0) {
+        await checkHot("microSD");
+      }
+      else if (rand < probability && await getStock("bottle") > 0) {
         prize = "水筒";
-        await decreaseStock("bottle");
 
-      } else if (await getStock("tote") > 0) {
+        // ✨ レア演出
+        rareEffect();
+        showRareBanner();
+        rareButtonEffect();
+        playRareSound();
+
+        await decreaseStock("bottle");
+        await checkHot("bottle");
+      }
+      else if (await getStock("tote") > 0) {
         prize = "トートバッグ";
         await decreaseStock("tote");
+        await checkHot("tote");
+
 
       } else if (await getStock("memo500") > 0) {
         prize = "SDカード型メモ";
