@@ -52,21 +52,46 @@
       const q2 = document.querySelector('input[name="q2"]:checked')?.value || "";
       const q3 = document.querySelector('input[name="q3"]:checked')?.value || "";
 
-      // 🎯 抽選ロジック（例：20%で当たり）
-      const rand = Math.random();
-      const isWin = rand < 0.2;   // 20%当たり
+      // ボーナス値（学生は回答数）
+      const bonus = Number(localStorage.getItem('surveyCount') || 0);
 
-      // Firestore に保存（抽選結果も含む）
+      // 上位景品の確率を計算（最大20%）
+      const baseRate = 0.01; // 1%
+      const bonusRate = bonus * 0.03; // 回答1つにつき3%UP
+      const topRate = Math.min(baseRate + bonusRate, 0.20); // 最大20%
+
+      const rand = Math.random();
+
+      let prize = "";
+
+      // 上位景品抽選
+      if (rand < topRate) {
+        const topPrizes = ["マイクロSDカード", "水筒"];
+        prize = topPrizes[Math.floor(Math.random() * topPrizes.length)];
+      } else {
+        // 下位景品（ペットボトル水を含む）
+        const lowPrizes = [
+          "トートバッグ",
+          "SDカード型メモ",
+          "SDカード型",
+        ];
+        prize = lowPrizes[Math.floor(Math.random() * lowPrizes.length)];
+      }
+
+      // Firestore に保存
       await addDoc(collection(db, "survey"), {
         q1,
         q2,
         q3,
         timestamp: new Date(),
-        result: isWin ? "当たり" : "はずれ"
+        prize: prize
       });
 
-      // localStorage に抽選結果を保存（lottery.html で表示する用）
-      localStorage.setItem("isWin", isWin);
+      // localStorage に保存（lottery.html で表示用）
+      
+      localStorage.setItem("prize", prize);
+
+
 
       // 学生ルートであることを記録
       localStorage.setItem('userType','student');
