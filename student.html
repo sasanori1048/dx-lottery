@@ -5,30 +5,12 @@
   <title>学生向けページ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
 </head>
 <body>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
-    authDomain: "dx-lottery.firebaseapp.com",
-    projectId: "dx-lottery",
-    storageBucket: "dx-lottery.firebasestorage.app",
-    messagingSenderId: "13800927311",
-    appId: "1:13800927311:web:633a52a3919394c6f9ba3a"
-  };
-
-  // Firebase 初期化
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
-
   <h1>学生向け 抽選参加ページ</h1>
   <p>アンケートに回答すると抽選確率が上がります。</p>
 
   <form id="survey">
-
     <p><strong>Q1：展示会はどうでしたか？</strong></p>
     <label><input type="radio" name="q1" value="良かった"> 良かった</label><br>
     <label><input type="radio" name="q1" value="普通"> 普通</label><br>
@@ -47,37 +29,37 @@
     <button type="submit">回答して抽選へ進む</button>
   </form>
 
-  <script>
-    
-    document.getElementById('survey').addEventListener('submit', async function(e){
-    e.preventDefault();
+  <!-- ✅ Firebase v10 モジュール構文 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    // 回答内容を取得
-    const q1 = document.querySelector('input[name="q1"]:checked')?.value || "";
-    const q2 = document.querySelector('input[name="q2"]:checked')?.value || "";
-    const q3 = document.querySelector('input[name="q3"]:checked')?.value || "";
+    const firebaseConfig = {
+      apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
+      authDomain: "dx-lottery.firebaseapp.com",
+      projectId: "dx-lottery",
+      storageBucket: "dx-lottery.firebasestorage.app",
+      messagingSenderId: "13800927311",
+      appId: "1:13800927311:web:633a52a3919394c6f9ba3a"
+    };
 
-    // Firestore に保存
-    await db.collection("survey").add({
-      q1: q1,
-      q2: q2,
-      q3: q3,
-      timestamp: new Date()
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.getElementById('survey').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const q1 = document.querySelector('input[name="q1"]:checked')?.value || "";
+      const q2 = document.querySelector('input[name="q2"]:checked')?.value || "";
+      const q3 = document.querySelector('input[name="q3"]:checked')?.value || "";
+
+      await addDoc(collection(db, "survey"), {
+        q1, q2, q3, timestamp: new Date()
+      });
+
+      localStorage.setItem('userType', 'student');
+      location.href = 'lottery.html';
     });
-
-    // 回答回数をlocalStorageに保存
-    let count = localStorage.getItem('surveyCount') || 0;
-    count++;
-    localStorage.setItem('surveyCount', count);
-
-    // 学生ルートであることを記録
-    localStorage.setItem('userType','student');
-
-    // 抽選ページへ
-    location.href = 'lottery.html';
-  });
-</script>
-
-
+  </script>
 </body>
 </html>
