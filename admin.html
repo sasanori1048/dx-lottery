@@ -28,6 +28,7 @@
   <table>
     <thead>
       <tr>
+        <th>入場番号</th>
         <th>Q1</th>
         <th>Q2</th>
         <th>Q3</th>
@@ -67,6 +68,7 @@
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
+          <td>${data.entryNumber || "-"}</td>
           <td>${data.q1}</td>
           <td>${data.q2}</td>
           <td>${data.q3}</td>
