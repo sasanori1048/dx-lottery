@@ -43,12 +43,55 @@
   <table id="stockTable">
     <tr><th>景品名</th><th>残数</th></tr>
   </table>
+  <h2>在庫補充</h2>
+  <div>
+    <label>景品：</label>
+    <select id="stockItem">
+      <option value="microSD">マイクロSDカード</option>
+      <option value="bottle">水筒</option>
+      <option value="tote">トートバッグ</option>
+      <option value="memo500">SDカード型メモ</option>
+      <option value="memo100">SDカード型付箋</option>
+    </select>
+
+    <label>補充数：</label>
+    <input type="number" id="addCount" value="1" min="1">
+
+    <button id="addStockBtn">補充する</button>
+  </div>
 
   <!-- Firebase v10 モジュール構文 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  // 在庫補充処理
+  document.getElementById("addStockBtn").addEventListener("click", async () => {
+    const itemId = document.getElementById("stockItem").value;
+    const addCount = Number(document.getElementById("addCount").value);
 
+    if (addCount <= 0) {
+      alert("補充数は1以上を入力してください");
+      return;
+    }
+
+    const ref = doc(db, "stock", itemId);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+      alert("在庫データが見つかりません");
+      return;
+    }
+
+    const current = snap.data().count;
+    await updateDoc(ref, { count: current + addCount });
+
+    alert("補充しました！");
+
+  // 在庫一覧を再読み込み
+  document.getElementById("stockTable").innerHTML =
+    "<tr><th>景品名</th><th>残数</th></tr>";
+  loadStock();
+});
     const firebaseConfig = {
       apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
       authDomain: "dx-lottery.firebaseapp.com",
