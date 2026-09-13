@@ -84,17 +84,23 @@
       document.getElementById('result').textContent = "抽選結果： " + prize;
       document.getElementById('staffConfirm').style.display = "block";
 
-      // Firestoreに抽選結果を保存
-      const docRef = await addDoc(collection(db, "survey"), {
-        prize: prize,
-        userType: userType,
-        received: "no",
-        timestamp: new Date()
-      });
+      // Firestoreの最新アンケートを更新（統合）
+      const snapshot = await getDocs(collection(db, "survey"));
+      const docs = snapshot.docs;
+      const lastDoc = docs[docs.length - 1]; // 最新のアンケート回答
 
-      // ドキュメントIDを保存
-      localStorage.setItem("lastDocId", docRef.id);
-    });
+      if (lastDoc) {
+        const docRef = doc(db, "survey", lastDoc.id);
+        await updateDoc(docRef, {
+          prize: prize,
+          received: "no",
+          timestamp: new Date()
+        });
+
+        // ドキュメントIDを保存（スタッフ確認で使う）
+        localStorage.setItem("lastDocId", lastDoc.id);
+     }
+
 
     /* ------------------------------
        ③ スタッフ確認（確認ロジックだけ触る）
