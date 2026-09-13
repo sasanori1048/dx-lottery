@@ -20,7 +20,23 @@
     説明員が確認しました
   </button>
 
-  <script>
+  <!-- ✅ Firebase v10 モジュール構文 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
+      authDomain: "dx-lottery.firebaseapp.com",
+      projectId: "dx-lottery",
+      storageBucket: "dx-lottery.firebasestorage.app",
+      messagingSenderId: "13800927311",
+      appId: "1:13800927311:web:633a52a3919394c6f9ba3a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     // どちらのページから来たか判定
     const userType = localStorage.getItem('userType');
 
@@ -51,7 +67,6 @@
 
     // 抽選処理
     document.getElementById('start').addEventListener('click', () => {
-
       let baseProbability = 0.05; 
       let probability = Math.min(baseProbability + bonus * 0.02, 0.9);
 
@@ -80,24 +95,29 @@
       }
 
       localStorage.setItem('stock', JSON.stringify(stock));
+      localStorage.setItem('prize', prize);
 
       document.getElementById('result').textContent = "抽選結果： " + prize;
-
-      // スタッフ確認ボタンを表示
       document.getElementById('staffConfirm').style.display = "block";
     });
 
     // スタッフ確認コード処理
-    document.getElementById("staffConfirm").addEventListener("click", () => {
+    document.getElementById("staffConfirm").addEventListener("click", async () => {
       const code = prompt("スタッフ確認コードを入力してください:");
       if (code === "DX2026") {
         localStorage.setItem("received", "yes");
         alert("確認を記録しました。");
+
+        // ✅ Firestore に確認済みを保存
+        await addDoc(collection(db, "survey"), {
+          prize: localStorage.getItem("prize") || "-",
+          received: "yes",
+          timestamp: new Date()
+        });
       } else {
         alert("コードが違います。スタッフのみ操作可能です。");
       }
     });
-
   </script>
 
 </body>
