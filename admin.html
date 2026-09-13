@@ -61,96 +61,76 @@
   </div>
 
   <!-- Firebase v10 モジュール構文 -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-  // 在庫補充処理
-  document.getElementById("addStockBtn").addEventListener("click", async () => {
-    const itemId = document.getElementById("stockItem").value;
-    const addCount = Number(document.getElementById("addCount").value);
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } 
+  from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    if (addCount <= 0) {
-      alert("補充数は1以上を入力してください");
-      return;
-    }
+const firebaseConfig = {
+  apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
+  authDomain: "dx-lottery.firebaseapp.com",
+  projectId: "dx-lottery",
+  storageBucket: "dx-lottery.firebasestorage.app",
+  messagingSenderId: "13800927311",
+  appId: "1:13800927311:web:633a52a3919394c6f9ba3a"
+};
 
-    const ref = doc(db, "stock", itemId);
-    const snap = await getDoc(ref);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    if (!snap.exists()) {
-      alert("在庫データが見つかりません");
-      return;
-    }
+/* 在庫補充 */
+document.getElementById("addStockBtn").addEventListener("click", async () => {
+  const itemId = document.getElementById("stockItem").value;
+  const addCount = Number(document.getElementById("addCount").value);
+  if (addCount <= 0) return alert("補充数は1以上を入力してください");
 
-    const current = snap.data().count;
-    await updateDoc(ref, { count: current + addCount });
+  const ref = doc(db, "stock", itemId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return alert("在庫データが見つかりません");
 
-    alert("補充しました！");
+  await updateDoc(ref, { count: snap.data().count + addCount });
+  alert("補充しました！");
 
-  // 在庫一覧を再読み込み
   document.getElementById("stockTable").innerHTML =
     "<tr><th>景品名</th><th>残数</th></tr>";
   loadStock();
 });
-    const firebaseConfig = {
-      apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
-      authDomain: "dx-lottery.firebaseapp.com",
-      projectId: "dx-lottery",
-      storageBucket: "dx-lottery.firebasestorage.app",
-      messagingSenderId: "13800927311",
-      appId: "1:13800927311:web:633a52a3919394c6f9ba3a"
-    };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+/* アンケート一覧 */
+async function loadSurvey() {
+  const list = document.getElementById("surveyList");
+  list.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "survey"));
 
-    async function loadSurvey() {
-      const list = document.getElementById("surveyList");
-      list.innerHTML = "";
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    list.innerHTML += `
+      <tr>
+        <td>${d.entryNumber || "-"}</td>
+        <td>${d.q1}</td>
+        <td>${d.q2}</td>
+        <td>${d.q3}</td>
+        <td>${d.prize || "-"}</td>
+        <td>${d.received === "yes" ? "✔" : ""}</td>
+        <td>${d.timestamp?.toDate().toLocaleString()}</td>
+      </tr>`;
+  });
+}
+loadSurvey();
 
-      const querySnapshot = await getDocs(collection(db, "survey"));
+/* 在庫一覧 */
+async function loadStock() {
+  const table = document.getElementById("stockTable");
+  const snapshot = await getDocs(collection(db, "stock"));
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const tr = document.createElement("tr");
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    table.innerHTML += `<tr><td>${d.name}</td><td>${d.count}</td></tr>`;
+  });
+}
+loadStock();
+</script>
 
-        tr.innerHTML = `
-          <td>${data.entryNumber || "-"}</td>
-          <td>${data.q1}</td>
-          <td>${data.q2}</td>
-          <td>${data.q3}</td>
-          <td>${data.prize || "-"}</td>
-          <td>${data.received === "yes" ? "✔" : ""}</td>
-          <td>${data.timestamp?.toDate().toLocaleString()}</td>
-        `;
-
-        list.appendChild(tr);
-      });
-    }
-
-    loadSurvey();
-
-    // 在庫一覧を表示する
-    async function loadStock() {
-      const stockTable = document.getElementById("stockTable");
-
-      const snapshot = await getDocs(collection(db, "stock"));
-      snapshot.forEach(doc => {
-        const data = doc.data();
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${data.name}</td>
-          <td>${data.count}</td>
-        `;
-        stockTable.appendChild(tr);
-      });
-    }
-
-    // ページ読み込み時に実行
-    loadStock();
-
-  </script>
 
 </body>
 </html>
