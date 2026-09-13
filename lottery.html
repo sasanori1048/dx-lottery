@@ -21,7 +21,8 @@
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } 
+      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     /* ------------------------------
        ① Firebase 初期化（触らない）
@@ -37,8 +38,6 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
-    import { getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     // 在庫を取得する
     async function getStock(itemId) {
@@ -75,17 +74,6 @@
       bonus = Number(localStorage.getItem('surveyCount') || 0);
     }
 
-    const defaultStock = {
-      microSD: 1,
-      bottle: 1,
-      tote: 300,
-      memo500: 500,
-      memo100: 100
-    };
-
-    if (!localStorage.getItem('stock')) {
-      localStorage.setItem('stock', JSON.stringify(defaultStock));
-    }
 
     document.getElementById('start').addEventListener('click', async () => {
 
