@@ -198,19 +198,34 @@
       document.getElementById('result').textContent = "抽選結果： " + prize;
       document.getElementById('staffConfirm').style.display = "block";
 
-      // ここから下は、今まで通りのアンケート統合処理でOK
-      // 抽選結果を新規ドキュメントとして保存（addDoc版）
-      const surveyRef = collection(db, "survey");
-      const newDoc = await addDoc(surveyRef, {
-        prize: prize,
-        received: "no",
-        entryNumber: null,   // スタッフ確認で後から入れる
-        timestamp: new Date()
+      // 最新のアンケートドキュメントを取得
+      const snapshot = await getDocs(collection(db, "survey"));
+      const docs = snapshot.docs;
+      const lastDoc = docs[docs.length - 1]; // 最新のアンケート回答
+
+      let docRef;
+
+      if (lastDoc) {
+        // 既存アンケートに抽選結果を追加
+        docRef = doc(db, "survey", lastDoc.id);
+        await updateDoc(docRef, {
+          prize: prize,
+          received: "no",
+          entryNumber: null,
+          timestamp: new Date()
+        });
+        localStorage.setItem("lastDocId", lastDoc.id);
+      } else {
+        // アンケートが存在しない場合は新規作成
+        const newDoc = await addDoc(collection(db, "survey"), {
+          prize: prize,
+          received: "no",
+          entryNumber: null,
+          timestamp: new Date()
+        });
+        localStorage.setItem("lastDocId", newDoc.id);
       });
 
-      // スタッフ確認で使うために保存
-      localStorage.setItem("lastDocId", newDoc.id);
-    });
 
 
     /* ------------------------------
