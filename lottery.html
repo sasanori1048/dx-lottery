@@ -178,14 +178,15 @@
         await decreaseStock("tote");
         await checkHot("tote");
 
-
       } else if (await getStock("memo500") > 0) {
         prize = "SDカード型メモ";
         await decreaseStock("memo500");
+        await checkHot("memo500");
 
       } else if (await getStock("memo100") > 0) {
         prize = "SDカード型付箋";
         await decreaseStock("memo100");
+        await checkHot("memo100");
 
       } else {
         prize = "景品終了";
@@ -195,19 +196,17 @@
       document.getElementById('staffConfirm').style.display = "block";
 
       // ここから下は、今まで通りのアンケート統合処理でOK
-      const snapshot = await getDocs(collection(db, "survey"));
-      const docs = snapshot.docs;
-      const lastDoc = docs[docs.length - 1];
+      // 抽選結果を新規ドキュメントとして保存（addDoc版）
+      const surveyRef = collection(db, "survey");
+      const newDoc = await addDoc(surveyRef, {
+        prize: prize,
+        received: "no",
+        entryNumber: null,   // スタッフ確認で後から入れる
+        timestamp: new Date()
+      });
 
-      if (lastDoc) {
-        const docRef = doc(db, "survey", lastDoc.id);
-        await updateDoc(docRef, {
-          prize: prize,
-          received: "no",
-          timestamp: new Date()
-        });
-        localStorage.setItem("lastDocId", lastDoc.id);
-      }
+      // スタッフ確認で使うために保存
+      localStorage.setItem("lastDocId", newDoc.id);
     });
 
 
