@@ -19,46 +19,19 @@
     説明員が確認しました
   </button>
 
-  <!-- ✅ Firebase v10 モジュール構文 -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  <script>
+    // 抽選ボタンの動作テスト
+    document.getElementById('start').addEventListener('click', () => {
+      const prize = "テスト景品";
+      document.getElementById('result').textContent = "抽選結果：" + prize;
+      document.getElementById('staffConfirm').style.display = "block";
+    });
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
-      authDomain: "dx-lottery.firebaseapp.com",
-      projectId: "dx-lottery",
-      storageBucket: "dx-lottery.firebasestorage.app",
-      messagingSenderId: "13800927311",
-      appId: "1:13800927311:web:633a52a3919394c6f9ba3a"
-    };
+    // スタッフ確認ボタンの動作テスト
+    document.getElementById('staffConfirm').addEventListener('click', () => {
+      alert("スタッフ確認完了！");
+    });
+  </script>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // どちらのページから来たか判定
-    const userType = localStorage.getItem('userType');
-
-    let bonus = 0;
-    if (userType === 'general') {
-      const qrCount = Number(localStorage.getItem('qrCount') || 0);
-      const quizCorrect = Number(localStorage.getItem('quizCorrect') || 0);
-      bonus = qrCount + quizCorrect;
-    } else if (userType === 'student') {
-      const surveyCount = Number(localStorage.getItem('surveyCount') || 0);
-      bonus = surveyCount;
-    }
-
-    const defaultStock = {
-      microSD: 1,
-      bottle: 1,
-      tote: 300,
-      memo500: 500,
-      memo100: 100
-    };
-
-    if (!localStorage.getItem('stock')) {
-      localStorage.setItem('stock', JSON.stringify(defaultStock));
-    }
-
-    document.getElementById('start').addEventListener
+</body>
+</html>
