@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
 
-  <!-- 🎨 演出用CSS（style.cssに入れてもOK） -->
+  <!-- 🎨 演出用CSS -->
   <style>
     /* 🎰 本物ルーレット */
     .rouletteContainer {
@@ -14,6 +14,7 @@
       height: 220px;
       margin: 20px auto;
       position: relative;
+      display:none;
     }
     .rouletteWheel {
       width: 100%;
@@ -46,7 +47,7 @@
 
     /* 🎰 本物スロット */
     .slotMachine {
-      display: flex;
+      display:none;
       justify-content: center;
       gap: 10px;
       margin: 20px;
@@ -77,6 +78,7 @@
     #amidakujiCanvas {
       border: 2px solid #aaa;
       margin-top: 20px;
+      display:none;
     }
 
     /* ✨ 結果ポップ */
@@ -100,12 +102,12 @@
   <div id="result" style="margin-top:20px; font-size:20px;"></div>
 
   <!-- 🎰 本物ルーレット -->
-  <div class="rouletteContainer">
+  <div class="rouletteContainer" id="rouletteBox">
     <div class="rouletteWheel" id="rouletteWheel"></div>
   </div>
 
   <!-- 🎰 本物スロット -->
-  <div class="slotMachine">
+  <div class="slotMachine" id="slotBox">
     <div class="reel" id="reel1">7</div>
     <div class="reel" id="reel2">7</div>
     <div class="reel" id="reel3">7</div>
@@ -183,8 +185,18 @@
       }
     }
 
-    /* 🎰 本物ルーレット */
+    /* 🎯 全演出非表示 */
+    function hideAllEffects() {
+      document.getElementById("rouletteBox").style.display = "none";
+      document.getElementById("slotBox").style.display = "none";
+      document.getElementById("amidakujiCanvas").style.display = "none";
+    }
+
+    /* 🎰 ルーレット */
     function playRouletteVegas(prize) {
+      hideAllEffects();
+      document.getElementById("rouletteBox").style.display = "block";
+
       const wheel = document.getElementById("rouletteWheel");
       const result = document.getElementById("result");
 
@@ -200,8 +212,11 @@
       }, 3500);
     }
 
-    /* 🎰 本物スロット */
+    /* 🎰 スロット */
     function playSlotEffect(prize) {
+      hideAllEffects();
+      document.getElementById("slotBox").style.display = "flex";
+
       const r1 = document.getElementById("reel1");
       const r2 = document.getElementById("reel2");
       const r3 = document.getElementById("reel3");
@@ -233,17 +248,47 @@
       }, 3000);
     }
 
-    /* 🎯 本物あみだくじ */
+    /* 🎯 あみだくじベース線 */
+    function drawAmidakujiBase(ctx) {
+      ctx.strokeStyle = "#444";
+      ctx.lineWidth = 3;
+
+      // 縦線
+      for (let x of [50, 150, 250]) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 300);
+        ctx.stroke();
+      }
+
+      // 横線
+      for (let i = 0; i < 10; i++) {
+        let y = Math.random() * 280 + 10;
+        let x = Math.random() < 0.5 ? 50 : 150;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + 100, y);
+        ctx.stroke();
+      }
+    }
+
+    /* 🎯 あみだくじ */
     function playAmidakujiEffect(prize) {
+      hideAllEffects();
       const canvas = document.getElementById("amidakujiCanvas");
+      canvas.style.display = "block";
+
       const ctx = canvas.getContext("2d");
       const result = document.getElementById("result");
 
       result.innerHTML = "🎯 あみだくじ進行中…";
 
       ctx.clearRect(0,0,300,300);
-      ctx.lineWidth = 4;
+
+      drawAmidakujiBase(ctx);
+
       ctx.strokeStyle = "#00aaff";
+      ctx.lineWidth = 4;
 
       let y = 0;
       let x = 50;
@@ -255,99 +300,6 @@
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        if (Math.random() < 0.2) x += 80;
-        if (Math.random() < 0.2) x -= 80;
-
-        if (y >= 300) {
-          clearInterval(interval);
-          result.innerHTML = "🎉 抽選結果： " + prize;
-          result.classList.add("resultPop");
-        }
-      }, 60);
-    }
-
-    /* 🔀 ランダム演出 */
-    function playRandomEffect(prize) {
-      const effects = ["roulette", "slot", "amidakuji"];
-      const choice = effects[Math.floor(Math.random() * effects.length)];
-
-      switch (choice) {
-        case "roulette":
-          playRouletteVegas(prize);
-          break;
-        case "slot":
-          playSlotEffect(prize);
-          break;
-        case "amidakuji":
-          playAmidakujiEffect(prize);
-          break;
-      }
-    }
-
-    /* 抽選ロジック */
-    document.getElementById('start').addEventListener('click', async () => {
-
-      localStorage.removeItem("lastDocId");
-
-      let prize = "";
-      const rand = Math.random();
-
-      if (rand < 0.1 && await getStock("microSD") > 0) {
-        prize = "マイクロSDカード";
-        await decreaseStock("microSD");
-        await checkHot("microSD");
-      }
-      else if (rand < 0.2 && await getStock("bottle") > 0) {
-        prize = "水筒";
-        await decreaseStock("bottle");
-        await checkHot("bottle");
-      }
-      else if (await getStock("tote") > 0) {
-        prize = "トートバッグ";
-        await decreaseStock("tote");
-        await checkHot("tote");
-      }
-      else if (await getStock("memo500") > 0) {
-        prize = "SDカード型メモ";
-        await decreaseStock("memo500");
-        await checkHot("memo500");
-      }
-      else if (await getStock("memo100") > 0) {
-        prize = "SDカード型付箋";
-        await decreaseStock("memo100");
-        await checkHot("memo100");
-      }
-      else {
-        prize = "景品終了";
-      }
-
-      playRandomEffect(prize);
-
-      document.getElementById('staffConfirm').style.display = "block";
-
-      const newDoc = await addDoc(collection(db, "survey"), {
-        prize: prize,
-        received: "no",
-        entryNumber: null,
-        timestamp: new Date()
-      });
-
-      localStorage.setItem("lastDocId", newDoc.id);
-    });
-
-    /* スタッフ確認 */
-    document.getElementById("staffConfirm").addEventListener("click", async () => {
-      const code = prompt("スタッフ確認コードを入力してください:");
-      if (code !== "DX2026") return alert("コードが違います");
-
-      let docRef = doc(db, "survey", localStorage.getItem("lastDocId"));
-
-      const counterRef = doc(db, "meta", "entryCounter");
-      const counterSnap = await getDoc(counterRef);
-      let entryNumber = counterSnap.exists() ? counterSnap.data().lastNumber + 1 : 1;
-
-      await setDoc(counterRef, { lastNumber: entryNumber });
-      await updateDoc(docRef, { received: "yes", entryNumber });
-    });
-
-  </script>
+        // 横線に当たったら移動
+        const pixel = ctx.getImageData(x, y, 1, 1).data;
+        if (pixel
