@@ -6,7 +6,7 @@
 <style>
 body { font-family: system-ui; text-align:center; background:#e6f4ff; }
 
-/* ▼ ボタン（大きく・太く・押しやすく） */
+/* ▼ ボタン */
 button {
   font-size: 26px;
   padding: 20px 45px;
@@ -27,7 +27,7 @@ button:hover { transform: scale(1.05); }
   margin-top: 20px;
 }
 
-/* ▼ ルーレット（矢印ズレ修正＋当たり光） */
+/* ▼ ルーレット */
 .rouletteContainer {
   width:240px;
   height:240px;
@@ -61,6 +61,16 @@ button:hover { transform: scale(1.05); }
   box-shadow:none;
   transform:rotate(0deg);
 }
+.rouletteCenter {
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%, -50%);
+  font-size:22px;
+  font-weight:bold;
+  color:#ffd700;
+  text-shadow:0 0 5px #000;
+  display:none;
+}
 
 /* ▼ スロット */
 .slotMachine { display:none; justify-content:center; gap:15px; margin:20px; }
@@ -71,11 +81,12 @@ button:hover { transform: scale(1.05); }
   border-radius:10px; border:4px solid gold;
   display:flex; justify-content:center; align-items:center;
   text-shadow:0 0 5px #000;
+  transition:transform 0.1s ease;
 }
 .spinAnim { animation:reelSpin 0.18s linear infinite; }
 @keyframes reelSpin { 0%{transform:translateY(0);} 100%{transform:translateY(-15px);} }
 
-/* ▼ あみだくじ（赤線＋10秒進行＋ゴール後5秒点滅） */
+/* ▼ あみだくじ */
 #amidakujiCanvas {
   border:2px solid #aaa;
   margin:20px auto;
@@ -83,7 +94,7 @@ button:hover { transform: scale(1.05); }
   background:#fff;
 }
 .amidGoals {
-  display:none; /* ← 最初は非表示（A仕様） */
+  display:none;
   justify-content:space-between;
   width:320px;
   margin:8px auto;
@@ -94,8 +105,8 @@ button:hover { transform: scale(1.05); }
   display:flex; align-items:center; justify-content:center; font-size:10px;
 }
 
-/* ▼ ゴール後点滅 */
-@keyframes amidBlink {
+/* ▼ 景品ラベル点滅 */
+@keyframes goalBlink {
   0% { opacity: 1; }
   50% { opacity: 0.2; }
   100% { opacity: 1; }
@@ -124,6 +135,7 @@ button:hover { transform: scale(1.05); }
 <div class="rouletteContainer" id="rouletteBox">
   <div class="roulettePointer"></div>
   <div class="rouletteWheel" id="rouletteWheel"></div>
+  <div class="rouletteCenter" id="rouletteCenter"></div>
 </div>
 
 <!-- ▼ スロット -->
@@ -150,6 +162,7 @@ button:hover { transform: scale(1.05); }
 
 </body>
 <script type="module">
+/* ▼ Firebase */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, doc, updateDoc, getDoc, addDoc, setDoc }
   from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
@@ -189,12 +202,14 @@ function hideAllEffects(){
   document.getElementById("amidakujiCanvas").style.display="none";
   document.querySelector(".roulettePointer").style.display="none";
   document.querySelector(".amidGoals").style.display="none";
+  document.getElementById("rouletteCenter").style.display="none";
 }
 
-/* ▼ ルーレット */
+/* ▼ ルーレット（矢印修正＋当たり光＋中央に景品表示） */
 function playRouletteVegas(prize){
   hideAllEffects();
   const wheel=document.getElementById("rouletteWheel");
+  const center=document.getElementById("rouletteCenter");
   const result=document.getElementById("result");
 
   document.getElementById("rouletteBox").style.display="block";
@@ -215,6 +230,7 @@ function playRouletteVegas(prize){
   wheel.style.transition="none";
   wheel.style.transform="rotate(0deg)";
   wheel.style.boxShadow="none";
+  center.style.display="none";
 
   setTimeout(()=>{
     wheel.style.transition="transform 4.5s cubic-bezier(0.05,0.9,0.1,1)";
@@ -224,12 +240,16 @@ function playRouletteVegas(prize){
       result.innerHTML="🎉 抽選結果： "+prize;
       result.classList.add("resultPop");
 
-      wheel.style.boxShadow="0 -35px 25px gold"; /* ← 当たり光（ポインタ直下） */
+      wheel.style.boxShadow="0 -35px 25px gold";
+
+      center.textContent=prize;   /* ← 中央に景品名表示 */
+      center.style.display="block";
+
     },4500);
   },50);
 }
 
-/* ▼ スロット */
+/* ▼ スロット（本物の停止演出：ガッガッガッ → カチッ） */
 function playSlotEffect(prize){
   hideAllEffects();
   const r1=document.getElementById("reel1");
@@ -241,22 +261,34 @@ function playSlotEffect(prize){
   result.innerHTML="🎰 スロット回転中…";
 
   const sym=["7","BAR","★"];
-  r1.classList.add("spinAnim");
-  r2.classList.add("spinAnim");
-  r3.classList.add("spinAnim");
 
-  function stop(reel,time){
+  function spin(reel){
+    reel.classList.add("spinAnim");
+  }
+  function stopReel(reel,time){
     setTimeout(()=>{
       reel.classList.remove("spinAnim");
-      reel.style.transform="scale(1.2)";
-      reel.innerHTML=sym[Math.floor(Math.random()*sym.length)];
-      setTimeout(()=>reel.style.transform="scale(1)",120);
+
+      /* ガッガッガッ揺れ演出 */
+      let shakes=0;
+      const shakeInt=setInterval(()=>{
+        reel.style.transform=`translateY(${(shakes%2===0)?'-10px':'10px'})`;
+        shakes++;
+        if(shakes>6){
+          clearInterval(shakeInt);
+          reel.style.transform="scale(1.2)";
+          reel.innerHTML=sym[Math.floor(Math.random()*sym.length)];
+          setTimeout(()=>reel.style.transform="scale(1)",120);
+        }
+      },60);
     },time);
   }
 
-  stop(r1,1600);
-  stop(r2,2200);
-  stop(r3,2800);
+  spin(r1); spin(r2); spin(r3);
+
+  stopReel(r1,1600);
+  stopReel(r2,2200);
+  stopReel(r3,2800);
 
   setTimeout(()=>{
     result.innerHTML="🎉 抽選結果： "+prize;
@@ -264,7 +296,7 @@ function playSlotEffect(prize){
   },3000);
 }
 
-/* ▼ あみだくじ（赤線＋10秒進行＋ゴール後5秒点滅＋結果一致） */
+/* ▼ あみだくじ（結果連動＋赤線＋景品ラベルだけ点滅） */
 const prizeNames=["マイクロSDカード","水筒","トートバッグ","SDカード型メモ","SDカード型付箋"];
 
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -315,15 +347,15 @@ function playAmidakujiEffect(prize){
 
   const w=canvas.width, h=canvas.height, cols=5;
   const goals=setupAmidGoals();
-  const prizeIndex=goals.indexOf(prize); /* ← 結果とゴール一致 */
+  const prizeIndex=goals.indexOf(prize); /* ← 結果とゴール完全連動 */
 
   const bars=generateBars(cols,h);
   const colX=drawBase(ctx,cols,w,h,bars);
 
-  ctx.strokeStyle="#ff0000"; /* ← 赤色に変更 */
+  ctx.strokeStyle="#ff0000"; /* ← 赤線 */
   ctx.lineWidth=4;
 
-  let col=prizeIndex; /* ← prize の列からスタート */
+  let col=prizeIndex;
   let y=10;
 
   const interval=setInterval(()=>{
@@ -345,10 +377,12 @@ function playAmidakujiEffect(prize){
     if(y>=h-10){
       clearInterval(interval);
 
-      canvas.style.animation="amidBlink 0.8s infinite";
+      /* 景品ラベルだけ点滅 */
+      const goalLabel=document.getElementById("goal"+col);
+      goalLabel.style.animation="goalBlink 0.8s infinite";
 
       setTimeout(()=>{
-        canvas.style.animation="none";
+        goalLabel.style.animation="none";
 
         result.innerHTML="🎉 抽選結果： "+prize;
         result.classList.add("resultPop");
@@ -356,7 +390,7 @@ function playAmidakujiEffect(prize){
         document.querySelector(".amidGoals").style.display="none";
       },5000);
     }
-  },80); /* ← ゆっくり進む（約10秒） */
+  },80);
 }
 
 /* ▼ ランダム演出 */
