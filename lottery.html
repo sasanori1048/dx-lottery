@@ -6,85 +6,124 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
 
-  <!-- 🎨 演出用CSS -->
   <style>
-    /* 🎰 本物ルーレット */
+    /* ============================
+       🎰 本物ルーレット（カジノ風）
+       ============================ */
+    .roulettePointer {
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 25px solid gold;
+      margin: 0 auto;
+      position: relative;
+      top: 10px;
+      z-index: 10;
+    }
+
     .rouletteContainer {
-      width: 220px;
-      height: 220px;
+      width: 240px;
+      height: 240px;
       margin: 20px auto;
       position: relative;
       display:none;
     }
+
     .rouletteWheel {
       width: 100%;
       height: 100%;
       border-radius: 50%;
       background: conic-gradient(
-        #c00 0deg 20deg,
-        #000 20deg 40deg,
-        #c00 40deg 60deg,
-        #000 60deg 80deg,
-        #c00 80deg 100deg,
-        #000 100deg 120deg,
-        #c00 120deg 140deg,
-        #000 140deg 160deg,
-        #c00 160deg 180deg,
-        #000 180deg 200deg,
-        #c00 200deg 220deg,
-        #000 220deg 240deg,
-        #c00 240deg 260deg,
-        #000 260deg 280deg,
-        #c00 280deg 300deg,
-        #000 300deg 320deg,
-        #c00 320deg 340deg,
-        #000 340deg 360deg
+        #c00 0deg 30deg,
+        #000 30deg 60deg,
+        #c00 60deg 90deg,
+        #000 90deg 120deg,
+        #c00 120deg 150deg,
+        #000 150deg 180deg,
+        #c00 180deg 210deg,
+        #000 210deg 240deg,
+        #c00 240deg 270deg,
+        #000 270deg 300deg,
+        #c00 300deg 330deg,
+        #000 330deg 360deg
       );
-      border: 6px solid gold;
-      box-shadow: 0 0 20px rgba(255,215,0,0.6);
+      border: 8px solid gold;
+      box-shadow: 0 0 25px rgba(255,215,0,0.7);
       transform: rotate(0deg);
     }
 
-    /* 🎰 本物スロット */
+    /* ============================
+       🎰 スロット（7 / BAR / ★）
+       ============================ */
     .slotMachine {
       display:none;
       justify-content: center;
-      gap: 10px;
+      gap: 15px;
       margin: 20px;
     }
+
     .reel {
-      width: 50px;
-      height: 70px;
-      background: #222;
-      color: #fff;
-      font-size: 40px;
-      font-weight: bold;
-      border-radius: 8px;
+      width: 80px;
+      height: 100px;
+      background: radial-gradient(circle at 30% 30%, #fff 0%, #ccc 40%, #111 100%);
+      color: #ffd700;
+      font-size: 36px;
+      font-weight: 900;
+      border-radius: 10px;
       display: flex;
       justify-content: center;
       align-items: center;
+      border: 4px solid gold;
+      text-shadow: 0 0 5px #000, 0 0 10px #000;
       overflow: hidden;
-      border: 3px solid gold;
-    }
-    .spinAnim {
-      animation: reelSpin 0.15s linear infinite;
-    }
-    @keyframes reelSpin {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-60px); }
     }
 
-    /* 🎯 本物あみだくじ */
+    .spinAnim {
+      animation: reelSpin 0.12s linear infinite;
+    }
+
+    @keyframes reelSpin {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-25px); }
+    }
+
+    /* ============================
+       🎯 あみだくじ（5ゴール）
+       ============================ */
     #amidakujiCanvas {
       border: 2px solid #aaa;
       margin-top: 20px;
       display:none;
     }
 
-    /* ✨ 結果ポップ */
+    .amidGoals {
+      display: flex;
+      justify-content: space-between;
+      width: 300px;
+      margin: 8px auto 0;
+      font-size: 12px;
+    }
+
+    .amidGoalIcon {
+      width: 55px;
+      height: 32px;
+      border-radius: 8px;
+      background: radial-gradient(circle at 30% 30%, #fff 0%, #ddd 40%, #999 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    /* ============================
+       ✨ 結果ポップ
+       ============================ */
     .resultPop {
       animation: popResult 0.6s ease-out;
     }
+
     @keyframes popResult {
       0% { transform: scale(0.2); opacity: 0; }
       60% { transform: scale(1.2); opacity: 1; }
@@ -92,7 +131,6 @@
     }
   </style>
 </head>
-
 <body>
 
   <h1>抽選ページ</h1>
@@ -102,6 +140,7 @@
   <div id="result" style="margin-top:20px; font-size:20px;"></div>
 
   <!-- 🎰 本物ルーレット -->
+  <div class="roulettePointer"></div>
   <div class="rouletteContainer" id="rouletteBox">
     <div class="rouletteWheel" id="rouletteWheel"></div>
   </div>
@@ -109,289 +148,375 @@
   <!-- 🎰 本物スロット -->
   <div class="slotMachine" id="slotBox">
     <div class="reel" id="reel1">7</div>
-    <div class="reel" id="reel2">7</div>
-    <div class="reel" id="reel3">7</div>
+    <div class="reel" id="reel2">BAR</div>
+    <div class="reel" id="reel3">★</div>
   </div>
 
   <!-- 🎯 本物あみだくじ -->
   <canvas id="amidakujiCanvas" width="300" height="300"></canvas>
 
+  <!-- ゴール（景品ラベル） -->
+  <div class="amidGoals">
+    <div class="amidGoalIcon" id="goal0"></div>
+    <div class="amidGoalIcon" id="goal1"></div>
+    <div class="amidGoalIcon" id="goal2"></div>
+    <div class="amidGoalIcon" id="goal3"></div>
+    <div class="amidGoalIcon" id="goal4"></div>
+  </div>
+
+  <!-- バナー -->
   <div id="hotBanner">🔥 激熱チャンス！残りわずか！ 🔥</div>
   <div id="rareBanner">🎉 超レア景品当選！ 🎉</div>
 
   <audio id="rareSound" src="rare.mp3"></audio>
 
+  <!-- スタッフ確認ボタン -->
   <button id="staffConfirm" style="display:none; margin-top:20px;">
     説明員が確認しました
   </button>
 
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, addDoc, setDoc } 
-      from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  <!-- PART③（JS 全体）をこの下に貼る -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { getFirestore, collection, doc, updateDoc, getDoc, addDoc, setDoc } 
+    from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    /* Firebase 初期化 */
-    const firebaseConfig = {
-      apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
-      authDomain: "dx-lottery.firebaseapp.com",
-      projectId: "dx-lottery",
-      storageBucket: "dx-lottery.firebasestorage.app",
-      messagingSenderId: "13800927311",
-      appId: "1:13800927311:web:633a52a3919394c6f9ba3a"
+  /* Firebase 初期化 */
+  const firebaseConfig = {
+    apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
+    authDomain: "dx-lottery.firebaseapp.com",
+    projectId: "dx-lottery",
+    storageBucket: "dx-lottery.firebasestorage.app",
+    messagingSenderId: "13800927311",
+    appId: "1:13800927311:web:633a52a3919394c6f9ba3a"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  /* 在庫取得 */
+  async function getStock(itemId) {
+    const ref = doc(db, "stock", itemId);
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data().count : 0;
+  }
+
+  /* 在庫減らす */
+  async function decreaseStock(itemId) {
+    const ref = doc(db, "stock", itemId);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const current = snap.data().count;
+      if (current > 0) {
+        await updateDoc(ref, { count: current - 1 });
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /* 激熱バナー */
+  async function checkHot(itemId) {
+    const stock = await getStock(itemId);
+    const banner = document.getElementById("hotBanner");
+
+    if (stock <= 10 && stock > 5) {
+      banner.textContent = "🔥 激熱チャンス！残りわずか！ 🔥";
+      banner.style.display = "block";
+      setTimeout(() => banner.style.display = "none", 1500);
+    }
+    if (stock <= 5 && stock > 1) {
+      banner.textContent = "🔥🔥 超激熱！残り5以下！ 🔥🔥";
+      banner.style.display = "block";
+      setTimeout(() => banner.style.display = "none", 2000);
+    }
+    if (stock === 1) {
+      banner.textContent = "✨✨ ラスト1！超プレミア！ ✨✨";
+      banner.style.display = "block";
+      setTimeout(() => banner.style.display = "none", 2500);
+    }
+  }
+
+  /* 全演出非表示 */
+  function hideAllEffects() {
+    document.getElementById("rouletteBox").style.display = "none";
+    document.getElementById("slotBox").style.display = "none";
+    document.getElementById("amidakujiCanvas").style.display = "none";
+  }
+
+  /* ============================
+     🎰 本物ルーレット（加速→減速→角度停止）
+     ============================ */
+  function playRouletteVegas(prize) {
+    hideAllEffects();
+    const box = document.getElementById("rouletteBox");
+    const wheel = document.getElementById("rouletteWheel");
+    const result = document.getElementById("result");
+
+    box.style.display = "block";
+    result.innerHTML = "🎰 ルーレット回転中…";
+
+    const prizeAngles = {
+      "マイクロSDカード": 30,
+      "水筒": 90,
+      "トートバッグ": 150,
+      "SDカード型メモ": 210,
+      "SDカード型付箋": 270,
+      "景品終了": 330
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const targetAngle = prizeAngles[prize] ?? Math.floor(Math.random() * 360);
 
-    /* 在庫取得 */
-    async function getStock(itemId) {
-      const ref = doc(db, "stock", itemId);
-      const snap = await getDoc(ref);
-      return snap.exists() ? snap.data().count : 0;
-    }
+    wheel.style.transition = "none";
+    wheel.style.transform = "rotate(0deg)";
 
-    async function decreaseStock(itemId) {
-      const ref = doc(db, "stock", itemId);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        const current = snap.data().count;
-        if (current > 0) {
-          await updateDoc(ref, { count: current - 1 });
-          return true;
-        }
-      }
-      return false;
-    }
-
-    async function checkHot(itemId) {
-      const stock = await getStock(itemId);
-      const banner = document.getElementById("hotBanner");
-
-      if (stock <= 10 && stock > 5) {
-        banner.textContent = "🔥 激熱チャンス！残りわずか！ 🔥";
-        banner.style.display = "block";
-        setTimeout(() => banner.style.display = "none", 1500);
-      }
-      if (stock <= 5 && stock > 1) {
-        banner.textContent = "🔥🔥 超激熱！残り5以下！ 🔥🔥";
-        banner.style.display = "block";
-        setTimeout(() => banner.style.display = "none", 2000);
-      }
-      if (stock === 1) {
-        banner.textContent = "✨✨ ラスト1！超プレミア！ ✨✨";
-        banner.style.display = "block";
-        setTimeout(() => banner.style.display = "none", 2500);
-      }
-    }
-
-    /* 🎯 全演出非表示 */
-    function hideAllEffects() {
-      document.getElementById("rouletteBox").style.display = "none";
-      document.getElementById("slotBox").style.display = "none";
-      document.getElementById("amidakujiCanvas").style.display = "none";
-    }
-
-    /* 🎰 ルーレット */
-    function playRouletteVegas(prize) {
-      hideAllEffects();
-      document.getElementById("rouletteBox").style.display = "block";
-
-      const wheel = document.getElementById("rouletteWheel");
-      const result = document.getElementById("result");
-
-      wheel.style.transition = "transform 3.5s cubic-bezier(0.1, 0.9, 0.2, 1)";
-      const spinDeg = 360 * 8 + Math.floor(Math.random() * 360);
-      wheel.style.transform = `rotate(${spinDeg}deg)`;
-
-      result.innerHTML = "🎰 ルーレット回転中…";
+    setTimeout(() => {
+      wheel.style.transition = "transform 4.5s cubic-bezier(0.05, 0.9, 0.1, 1)";
+      const stopDeg = 360 * 8 + targetAngle;
+      wheel.style.transform = `rotate(${stopDeg}deg)`;
 
       setTimeout(() => {
         result.innerHTML = "🎉 抽選結果： " + prize;
         result.classList.add("resultPop");
-      }, 3500);
+      }, 4500);
+    }, 50);
+  }
+
+  /* ============================
+     🎰 本物スロット（7 / BAR / ★）
+     ============================ */
+  function playSlotEffect(prize) {
+    hideAllEffects();
+    const box = document.getElementById("slotBox");
+    const r1 = document.getElementById("reel1");
+    const r2 = document.getElementById("reel2");
+    const r3 = document.getElementById("reel3");
+    const result = document.getElementById("result");
+
+    box.style.display = "flex";
+    result.innerHTML = "🎰 スロット回転中…";
+
+    const symbols = ["7","BAR","★"];
+
+    r1.classList.add("spinAnim");
+    r2.classList.add("spinAnim");
+    r3.classList.add("spinAnim");
+
+    setTimeout(() => {
+      r1.classList.remove("spinAnim");
+      r1.innerHTML = symbols[Math.floor(Math.random()*symbols.length)];
+    }, 1400);
+
+    setTimeout(() => {
+      r2.classList.remove("spinAnim");
+      r2.innerHTML = symbols[Math.floor(Math.random()*symbols.length)];
+    }, 2000);
+
+    setTimeout(() => {
+      r3.classList.remove("spinAnim");
+      r3.innerHTML = symbols[Math.floor(Math.random()*symbols.length)];
+      result.innerHTML = "🎉 抽選結果： " + prize;
+      result.classList.add("resultPop");
+    }, 2600);
+  }
+
+  /* ============================
+     🎯 本物あみだくじ（5ゴール）
+     ============================ */
+  const prizeNames = [
+    "マイクロSDカード",
+    "水筒",
+    "トートバッグ",
+    "SDカード型メモ",
+    "SDカード型付箋"
+  ];
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function setupAmidGoals() {
+    const shuffled = shuffle([...prizeNames]);
+    for (let i = 0; i < 5; i++) {
+      const el = document.getElementById("goal" + i);
+      el.textContent = shuffled[i];
+    }
+    return shuffled;
+  }
+
+  function generateAmidBars(cols, height) {
+    const bars = [];
+    for (let i = 0; i < 12; i++) {
+      const y = Math.floor(Math.random() * (height - 40)) + 20;
+      const fromCol = Math.floor(Math.random() * (cols - 1));
+      bars.push({ y, fromCol });
+    }
+    return bars.sort((a,b) => a.y - b.y);
+  }
+
+  function drawAmidBase(ctx, cols, width, height, bars) {
+    ctx.clearRect(0,0,width,height);
+    ctx.strokeStyle = "#444";
+    ctx.lineWidth = 3;
+
+    const colX = [];
+    for (let i = 0; i < cols; i++) {
+      const x = 30 + i * ((width - 60) / (cols - 1));
+      colX.push(x);
+      ctx.beginPath();
+      ctx.moveTo(x, 10);
+      ctx.lineTo(x, height - 10);
+      ctx.stroke();
     }
 
-    /* 🎰 スロット */
-    function playSlotEffect(prize) {
-      hideAllEffects();
-      document.getElementById("slotBox").style.display = "flex";
+    for (const bar of bars) {
+      const x1 = colX[bar.fromCol];
+      const x2 = colX[bar.fromCol + 1];
+      ctx.beginPath();
+      ctx.moveTo(x1, bar.y);
+      ctx.lineTo(x2, bar.y);
+      ctx.stroke();
+    }
 
-      const r1 = document.getElementById("reel1");
-      const r2 = document.getElementById("reel2");
-      const r3 = document.getElementById("reel3");
-      const result = document.getElementById("result");
+    return colX;
+  }
 
-      result.innerHTML = "🎰 スロット回転中…";
+  function playAmidakujiEffect(prize) {
+    hideAllEffects();
+    const canvas = document.getElementById("amidakujiCanvas");
+    const ctx = canvas.getContext("2d");
+    const result = document.getElementById("result");
 
-      r1.classList.add("spinAnim");
-      r2.classList.add("spinAnim");
-      r3.classList.add("spinAnim");
+    canvas.style.display = "block";
+    result.innerHTML = "🎯 あみだくじ進行中…";
 
-      const nums = ["1","2","3","4","5","6","7","8","9"];
+    const width = canvas.width;
+    const height = canvas.height;
+    const cols = 5;
 
-      setTimeout(() => {
-        r1.classList.remove("spinAnim");
-        r1.innerHTML = nums[Math.floor(Math.random()*nums.length)];
-      }, 1500);
+    setupAmidGoals();
+    const bars = generateAmidBars(cols, height);
+    const colX = drawAmidBase(ctx, cols, width, height, bars);
 
-      setTimeout(() => {
-        r2.classList.remove("spinAnim");
-        r2.innerHTML = nums[Math.floor(Math.random()*nums.length)];
-      }, 2200);
+    ctx.strokeStyle = "#00aaff";
+    ctx.lineWidth = 4;
 
-      setTimeout(() => {
-        r3.classList.remove("spinAnim");
-        r3.innerHTML = nums[Math.floor(Math.random()*nums.length)];
+    let currentCol = Math.floor(Math.random() * cols);
+    let y = 10;
+
+    const interval = setInterval(() => {
+      ctx.beginPath();
+      ctx.moveTo(colX[currentCol], y);
+      y += 6;
+      ctx.lineTo(colX[currentCol], y);
+      ctx.stroke();
+
+      for (const bar of bars) {
+        if (Math.abs(bar.y - y) < 4) {
+          if (bar.fromCol === currentCol) {
+            currentCol = currentCol + 1;
+            break;
+          } else if (bar.fromCol + 1 === currentCol) {
+            currentCol = currentCol - 1;
+            break;
+          }
+        }
+      }
+
+      if (y >= height - 10) {
+        clearInterval(interval);
         result.innerHTML = "🎉 抽選結果： " + prize;
         result.classList.add("resultPop");
-      }, 3000);
+      }
+    }, 40);
+  }
+
+  /* ============================
+     🔀 ランダム演出選択
+     ============================ */
+  function playRandomEffect(prize) {
+    hideAllEffects();
+    const effects = ["roulette", "slot", "amidakuji"];
+    const choice = effects[Math.floor(Math.random() * effects.length)];
+
+    if (choice === "roulette") playRouletteVegas(prize);
+    else if (choice === "slot") playSlotEffect(prize);
+    else playAmidakujiEffect(prize);
+  }
+
+  /* ============================
+     🎯 抽選ロジック
+     ============================ */
+  document.getElementById('start').addEventListener('click', async () => {
+    localStorage.removeItem("lastDocId");
+
+    let prize = "";
+    const rand = Math.random();
+
+    if (rand < 0.1 && await getStock("microSD") > 0) {
+      prize = "マイクロSDカード";
+      await decreaseStock("microSD");
+      await checkHot("microSD");
+    }
+    else if (rand < 0.2 && await getStock("bottle") > 0) {
+      prize = "水筒";
+      await decreaseStock("bottle");
+      await checkHot("bottle");
+    }
+    else if (await getStock("tote") > 0) {
+      prize = "トートバッグ";
+      await decreaseStock("tote");
+      await checkHot("tote");
+    }
+    else if (await getStock("memo500") > 0) {
+      prize = "SDカード型メモ";
+      await decreaseStock("memo500");
+      await checkHot("memo500");
+    }
+    else if (await getStock("memo100") > 0) {
+      prize = "SDカード型付箋";
+      await decreaseStock("memo100");
+      await checkHot("memo100");
+    }
+    else {
+      prize = "景品終了";
     }
 
-    /* 🎯 あみだくじベース線 */
-    function drawAmidakujiBase(ctx) {
-      ctx.strokeStyle = "#444";
-      ctx.lineWidth = 3;
+    playRandomEffect(prize);
 
-      // 縦線
-      for (let x of [50, 150, 250]) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, 300);
-        ctx.stroke();
-      }
+    document.getElementById('staffConfirm').style.display = "block";
 
-      // 横線
-      for (let i = 0; i < 10; i++) {
-        let y = Math.random() * 280 + 10;
-        let x = Math.random() < 0.5 ? 50 : 150;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + 100, y);
-        ctx.stroke();
-      }
-    }
-
-    /* 🎯 あみだくじ */
-    function playAmidakujiEffect(prize) {
-      hideAllEffects();
-      const canvas = document.getElementById("amidakujiCanvas");
-      canvas.style.display = "block";
-
-      const ctx = canvas.getContext("2d");
-      const result = document.getElementById("result");
-
-      result.innerHTML = "🎯 あみだくじ進行中…";
-
-      ctx.clearRect(0,0,300,300);
-
-      drawAmidakujiBase(ctx);
-
-      ctx.strokeStyle = "#00aaff";
-      ctx.lineWidth = 4;
-
-      let y = 0;
-      let x = 50;
-
-      const interval = setInterval(() => {
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        y += 10;
-        ctx.lineTo(x, y);
-        ctx.stroke();
-
-        // 横線に当たったら移動
-        const pixel = ctx.getImageData(x, y, 1, 1).data;
-        if (pixel[0] === 68) {
-          x += (Math.random() < 0.5 ? 100 : -100);
-        }
-
-        if (y >= 300) {
-          clearInterval(interval);
-          result.innerHTML = "🎉 抽選結果： " + prize;
-          result.classList.add("resultPop");
-        }
-      }, 60);
-    }
-
-    /* 🔀 ランダム演出 */
-    function playRandomEffect(prize) {
-      hideAllEffects();
-      const effects = ["roulette", "slot", "amidakuji"];
-      const choice = effects[Math.floor(Math.random() * effects.length)];
-
-      if (choice === "roulette") playRouletteVegas(prize);
-      else if (choice === "slot") playSlotEffect(prize);
-      else playAmidakujiEffect(prize);
-    }
-
-    /* 抽選ロジック */
-    document.getElementById('start').addEventListener('click', async () => {
-
-      localStorage.removeItem("lastDocId");
-
-      let prize = "";
-      const rand = Math.random();
-
-      if (rand < 0.1 && await getStock("microSD") > 0) {
-        prize = "マイクロSDカード";
-        await decreaseStock("microSD");
-        await checkHot("microSD");
-      }
-      else if (rand < 0.2 && await getStock("bottle") > 0) {
-        prize = "水筒";
-        await decreaseStock("bottle");
-        await checkHot("bottle");
-      }
-      else if (await getStock("tote") > 0) {
-        prize = "トートバッグ";
-        await decreaseStock("tote");
-        await checkHot("tote");
-      }
-      else if (await getStock("memo500") > 0) {
-        prize = "SDカード型メモ";
-        await decreaseStock("memo500");
-        await checkHot("memo500");
-      }
-      else if (await getStock("memo100") > 0) {
-        prize = "SDカード型付箋";
-        await decreaseStock("memo100");
-        await checkHot("memo100");
-      }
-      else {
-        prize = "景品終了";
-      }
-
-      playRandomEffect(prize);
-
-      document.getElementById('staffConfirm').style.display = "block";
-
-      const newDoc = await addDoc(collection(db, "survey"), {
-        prize: prize,
-        received: "no",
-        entryNumber: null,
-        timestamp: new Date()
-      });
-
-      localStorage.setItem("lastDocId", newDoc.id);
+    const newDoc = await addDoc(collection(db, "survey"), {
+      prize: prize,
+      received: "no",
+      entryNumber: null,
+      timestamp: new Date()
     });
 
-    /* スタッフ確認 */
-    document.getElementById("staffConfirm").addEventListener("click", async () => {
-      const code = prompt("スタッフ確認コードを入力してください:");
-      if (code !== "DX2026") return alert("コードが違います");
+    localStorage.setItem("lastDocId", newDoc.id);
+  });
 
-      let docRef = doc(db, "survey", localStorage.getItem("lastDocId"));
+  /* ============================
+     🧑‍💼 スタッフ確認
+     ============================ */
+  document.getElementById("staffConfirm").addEventListener("click", async () => {
+    const code = prompt("スタッフ確認コードを入力してください:");
+    if (code !== "DX2026") return alert("コードが違います");
 
-      const counterRef = doc(db, "meta", "entryCounter");
-      const counterSnap = await getDoc(counterRef);
-      let entryNumber = counterSnap.exists() ? counterSnap.data().lastNumber + 1 : 1;
+    let docRef = doc(db, "survey", localStorage.getItem("lastDocId"));
 
-      await setDoc(counterRef, { lastNumber: entryNumber });
-      await updateDoc(docRef, { received: "yes", entryNumber });
-    });
+    const counterRef = doc(db, "meta", "entryCounter");
+    const counterSnap = await getDoc(counterRef);
+    let entryNumber = counterSnap.exists() ? counterSnap.data().lastNumber + 1 : 1;
 
-  </script>
+    await setDoc(counterRef, { lastNumber: entryNumber });
+    await updateDoc(docRef, { received: "yes", entryNumber });
+  });
 
+</script>
 </body>
 </html>
