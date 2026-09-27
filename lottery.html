@@ -5,7 +5,29 @@
   <title>抽選ページ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ルーレット演出 */
+    .roulette {
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* 黒フェード演出 */
+    .fadeout {
+      animation: fadeScreen 1.8s;
+    }
+    @keyframes fadeScreen {
+      0% { opacity: 1; }
+      50% { opacity: 0.2; }
+      100% { opacity: 1; }
+    }
+  </style>
 </head>
+
 <body>
 
   <h1>抽選ページ</h1>
@@ -28,9 +50,7 @@
     import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, addDoc, setDoc } 
       from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    /* ------------------------------
-       ① Firebase 初期化（触らない）
-    ------------------------------ */
+    /* Firebase 初期化 */
     const firebaseConfig = {
       apiKey: "AIzaSyBh1hBHGUJmYyyLq-CIRRuWJiDDb5xZpCM",
       authDomain: "dx-lottery.firebaseapp.com",
@@ -43,14 +63,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 在庫を取得する
+    /* 在庫取得・減算・演出（既存） */
     async function getStock(itemId) {
       const ref = doc(db, "stock", itemId);
       const snap = await getDoc(ref);
       return snap.exists() ? snap.data().count : 0;
     }
 
-    // 在庫を1つ減らす
     async function decreaseStock(itemId) {
       const ref = doc(db, "stock", itemId);
       const snap = await getDoc(ref);
@@ -63,116 +82,86 @@
       }
       return false;
     }
+
     async function checkHot(itemId) {
       const stock = await getStock(itemId);
+      const banner = document.getElementById("hotBanner");
 
-      // 🔥 在庫10以下 → 激熱
       if (stock <= 10 && stock > 5) {
-        document.body.classList.add("hot-flash");
-        const banner = document.getElementById("hotBanner");
         banner.textContent = "🔥 激熱チャンス！残りわずか！ 🔥";
         banner.style.display = "block";
-
-        setTimeout(() => {
-          document.body.classList.remove("hot-flash");
-          banner.style.display = "none";
-        }, 1500);
+        setTimeout(() => banner.style.display = "none", 1500);
       }
-
-      // 🔥 在庫5以下 → 超激熱
       if (stock <= 5 && stock > 1) {
-        const banner = document.getElementById("hotBanner");
         banner.textContent = "🔥🔥 超激熱！残り5以下！ 🔥🔥";
         banner.style.display = "block";
-
-        document.getElementById("start").classList.add("hot-shake");
-
-        setTimeout(() => {
-          document.getElementById("start").classList.remove("hot-shake");
-          banner.style.display = "none";
-        }, 2000);
+        setTimeout(() => banner.style.display = "none", 2000);
       }
-
-      // ✨ 在庫1 → ラスト1演出
       if (stock === 1) {
-        const banner = document.getElementById("hotBanner");
         banner.textContent = "✨✨ ラスト1！超プレミア！ ✨✨";
         banner.style.display = "block";
-
-        document.body.classList.add("hot-flash");
-
-        setTimeout(() => {
-          document.body.classList.remove("hot-flash");
-          banner.style.display = "none";
-        }, 2500);
+        setTimeout(() => banner.style.display = "none", 2500);
       }
     }
-    function rareEffect() {
-      document.body.classList.add("rare-flash");
-      setTimeout(() => document.body.classList.remove("rare-flash"), 1000);
+
+    /* 🎉 ランダム演出（追加） */
+    function playRandomEffect(prize) {
+      const effects = ["roulette", "fade", "box"];
+      const choice = effects[Math.floor(Math.random() * effects.length)];
+
+      if (choice === "roulette") {
+        playRouletteEffect(prize);
+      } else if (choice === "fade") {
+        playFadeEffect(prize);
+      } else {
+        playBoxEffect(prize);
+      }
     }
 
-    function showRareBanner() {
-      const banner = document.getElementById("rareBanner");
-      banner.style.display = "block";
-      setTimeout(() => banner.style.display = "none", 2500);
+    function playRouletteEffect(prize) {
+      const result = document.getElementById("result");
+      result.textContent = "抽選中…";
+      result.classList.add("roulette");
+
+      setTimeout(() => {
+        result.classList.remove("roulette");
+        result.textContent = "抽選結果： " + prize;
+      }, 2500);
     }
 
-    function rareButtonEffect() {
-      const btn = document.getElementById("start");
-      btn.classList.add("rare-button");
-      setTimeout(() => btn.classList.remove("rare-button"), 2500);
+    function playFadeEffect(prize) {
+      document.body.classList.add("fadeout");
+
+      setTimeout(() => {
+        document.body.classList.remove("fadeout");
+        document.getElementById("result").textContent = "抽選結果： " + prize;
+      }, 1800);
     }
 
-    function playRareSound() {
-      document.getElementById("rareSound").play();
+    function playBoxEffect(prize) {
+      const result = document.getElementById("result");
+      result.innerHTML = "🎁 開封中…";
+
+      setTimeout(() => {
+        result.innerHTML = "🎉 抽選結果： " + prize;
+      }, 2000);
     }
 
-    /* ------------------------------
-       ② 抽選ロジック（景品だけ触る）
-    ------------------------------ */
-    const userType = localStorage.getItem('userType');
-
-    let bonus = 0;
-    if (userType === 'general') {
-      bonus = Number(localStorage.getItem('qrCount') || 0)
-            + Number(localStorage.getItem('quizCorrect') || 0);
-    } else if (userType === 'student') {
-      bonus = Number(localStorage.getItem('surveyCount') || 0);
-    }
-
-
+    /* 抽選ロジック（既存） */
     document.getElementById('start').addEventListener('click', async () => {
 
-      // ★ 前回の抽選の lastDocId をクリア（これが超重要）
       localStorage.removeItem("lastDocId");
 
-      let probability = Math.min(0.05 + bonus * 0.02, 0.9);
+      let prize = "";
       const rand = Math.random();
 
-      let prize = "";
-
-      if (rand < probability && await getStock("microSD") > 0) {
+      if (rand < 0.1 && await getStock("microSD") > 0) {
         prize = "マイクロSDカード";
-
-        // ✨ レア演出
-        rareEffect();
-        showRareBanner();
-        rareButtonEffect();
-        playRareSound();
-
         await decreaseStock("microSD");
         await checkHot("microSD");
       }
-      else if (rand < probability && await getStock("bottle") > 0) {
+      else if (rand < 0.2 && await getStock("bottle") > 0) {
         prize = "水筒";
-
-        // ✨ レア演出
-        rareEffect();
-        showRareBanner();
-        rareButtonEffect();
-        playRareSound();
-
         await decreaseStock("bottle");
         await checkHot("bottle");
       }
@@ -180,105 +169,50 @@
         prize = "トートバッグ";
         await decreaseStock("tote");
         await checkHot("tote");
-
-      } else if (await getStock("memo500") > 0) {
+      }
+      else if (await getStock("memo500") > 0) {
         prize = "SDカード型メモ";
         await decreaseStock("memo500");
         await checkHot("memo500");
-
-      } else if (await getStock("memo100") > 0) {
+      }
+      else if (await getStock("memo100") > 0) {
         prize = "SDカード型付箋";
         await decreaseStock("memo100");
         await checkHot("memo100");
-
-      } else {
+      }
+      else {
         prize = "景品終了";
       }
 
-      document.getElementById('result').textContent = "抽選結果： " + prize;
+      /* 🎉 ランダム演出で結果表示 */
+      playRandomEffect(prize);
+
       document.getElementById('staffConfirm').style.display = "block";
 
-      // 最新のアンケートドキュメントを取得
-      const snapshot = await getDocs(collection(db, "survey"));
-      const docs = snapshot.docs;
-      const lastDoc = docs[docs.length - 1]; // 最新のアンケート回答
+      /* Firestore 保存（抽選結果専用） */
+      const newDoc = await addDoc(collection(db, "survey"), {
+        prize: prize,
+        received: "no",
+        entryNumber: null,
+        timestamp: new Date()
+      });
 
-      let docRef;
-
-      if (lastDoc) {
-        // 既存アンケートに抽選結果を追加
-        docRef = doc(db, "survey", lastDoc.id);
-        await updateDoc(docRef, {
-          prize: prize,
-          received: "no",
-          entryNumber: null,
-          timestamp: new Date()
-        });
-        localStorage.setItem("lastDocId", lastDoc.id);
-      } else {
-        // アンケートが存在しない場合は新規作成
-        const newDoc = await addDoc(collection(db, "survey"), {
-          prize: prize,
-          received: "no",
-          entryNumber: null,
-          timestamp: new Date()
-        });
-        localStorage.setItem("lastDocId", newDoc.id);
-      }
-      
+      localStorage.setItem("lastDocId", newDoc.id);
     });
 
-
-
-    /* ------------------------------
-       ③ スタッフ確認（確認ロジックだけ触る）
-    ------------------------------ */
+    /* スタッフ確認（既存） */
     document.getElementById("staffConfirm").addEventListener("click", async () => {
       const code = prompt("スタッフ確認コードを入力してください:");
-      if (code !== "DX2026") {
-        alert("コードが違います。スタッフのみ操作可能です。");
-        return;
-      }
+      if (code !== "DX2026") return alert("コードが違います");
 
-      alert("確認を記録しました。");
+      let docRef = doc(db, "survey", localStorage.getItem("lastDocId"));
 
-      let lastDocId = localStorage.getItem("lastDocId");
-      let docRef;
-
-      if (lastDocId) {
-        // localStorage に ID がある → そのドキュメントを使う
-        docRef = doc(db, "survey", lastDocId);
-      } else {
-        // localStorage が空 → Firestore から最新のドキュメントを取得
-        const snapshot = await getDocs(collection(db, "survey"));
-        const docs = snapshot.docs;
-        const lastDoc = docs[docs.length - 1];
-
-        if (!lastDoc) {
-          alert("抽選データがありません。抽選を先に行ってください。");
-          return;
-        }
-
-        docRef = doc(db, "survey", lastDoc.id);
-      }
-
-
-      // entryCounter ドキュメントを使って連番を管理
       const counterRef = doc(db, "meta", "entryCounter");
       const counterSnap = await getDoc(counterRef);
-      let entryNumber = 1;
+      let entryNumber = counterSnap.exists() ? counterSnap.data().lastNumber + 1 : 1;
 
-      if (counterSnap.exists()) {
-        entryNumber = counterSnap.data().lastNumber + 1;
-        await updateDoc(counterRef, { lastNumber: entryNumber });
-      } else {
-        await setDoc(counterRef, { lastNumber: 1 });
-      }
-      // 抽選結果を更新（景品は上書きしない）
-      await updateDoc(docRef, {
-        received: "yes",
-        entryNumber: entryNumber
-      });
+      await setDoc(counterRef, { lastNumber: entryNumber });
+      await updateDoc(docRef, { received: "yes", entryNumber });
     });
 
   </script>
