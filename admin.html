@@ -99,15 +99,30 @@ async function changeStock(id, diff){
   loadStock(); // 再読み込み
 }
 
-/* ▼ 在庫補充 */
+/* ▼ 在庫補充（新規作成にも対応） */
 document.getElementById("addStockBtn").addEventListener("click", async () => {
   const itemId = document.getElementById("stockItem").value;
   const addCount = Number(document.getElementById("addCount").value);
   if (addCount <= 0) return alert("補充数は1以上を入力してください");
 
-  await changeStock(itemId, addCount);
+  const ref = doc(db, "stock", itemId);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    // ★ ドキュメントが消えていた場合は新規作成
+    await setDoc(ref, {
+      name: document.querySelector(`#stockItem option[value="${itemId}"]`).textContent,
+      count: addCount
+    });
+  } else {
+    // ★ 既存なら補充
+    await updateDoc(ref, { count: snap.data().count + addCount });
+  }
+
   alert("補充しました！");
+  loadStock(); // 再読み込み
 });
+
 
 /* ▼ アンケート一覧 */
 async function loadSurvey() {
