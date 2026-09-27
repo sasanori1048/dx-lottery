@@ -7,23 +7,35 @@
   <link rel="stylesheet" href="style.css">
 
   <style>
-    /* ルーレット演出 */
-    .roulette {
-      animation: spin 0.6s linear infinite;
+    /* 🎰 ラスベガス風ルーレット演出 */
+    .rouletteVegas {
+      animation: vegasSpin 0.8s linear infinite;
     }
-    @keyframes spin {
+    @keyframes vegasSpin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
 
-    /* 黒フェード演出 */
-    .fadeout {
-      animation: fadeScreen 1.8s;
+    /* 🎰 スロット演出 */
+    .slotSpin {
+      animation: slotReel 0.15s linear infinite;
     }
-    @keyframes fadeScreen {
-      0% { opacity: 1; }
-      50% { opacity: 0.2; }
-      100% { opacity: 1; }
+    @keyframes slotReel {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-25px); }
+    }
+
+    /* 🎯 あみだくじ演出 */
+    .amidakuji {
+      animation: amidakujiMove 2.8s linear;
+    }
+    @keyframes amidakujiMove {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(25px); }
+      40% { transform: translateX(-25px); }
+      60% { transform: translateX(15px); }
+      80% { transform: translateX(-15px); }
+      100% { transform: translateX(0); }
     }
   </style>
 </head>
@@ -106,45 +118,49 @@
 
     /* 🎉 ランダム演出（追加） */
     function playRandomEffect(prize) {
-      const effects = ["roulette", "fade", "box"];
+      const effects = ["rouletteVegas", "slot", "amidakuji"];
       const choice = effects[Math.floor(Math.random() * effects.length)];
 
-      if (choice === "roulette") {
-        playRouletteEffect(prize);
-      } else if (choice === "fade") {
-        playFadeEffect(prize);
+      if (choice === "rouletteVegas") {
+        playRouletteVegas(prize);
+      } else if (choice === "slot") {
+        playSlotEffect(prize);
       } else {
-        playBoxEffect(prize);
+        playAmidakujiEffect(prize);
       }
     }
 
-    function playRouletteEffect(prize) {
+    function playRouletteVegas(prize) {
       const result = document.getElementById("result");
-      result.textContent = "抽選中…";
-      result.classList.add("roulette");
+      result.innerHTML = "🎰 ルーレット回転中…";
+      result.classList.add("rouletteVegas");
 
       setTimeout(() => {
-        result.classList.remove("roulette");
-        result.textContent = "抽選結果： " + prize;
+        result.classList.remove("rouletteVegas");
+        result.innerHTML = "🎉 抽選結果： " + prize;
+      }, 3000);
+    }
+
+    function playSlotEffect(prize) {
+      const result = document.getElementById("result");
+      result.innerHTML = "🎰 スロット回転中…";
+      result.classList.add("slotSpin");
+
+      setTimeout(() => {
+        result.classList.remove("slotSpin");
+        result.innerHTML = "🎉 抽選結果： " + prize;
       }, 2500);
     }
 
-    function playFadeEffect(prize) {
-      document.body.classList.add("fadeout");
-
-      setTimeout(() => {
-        document.body.classList.remove("fadeout");
-        document.getElementById("result").textContent = "抽選結果： " + prize;
-      }, 1800);
-    }
-
-    function playBoxEffect(prize) {
+    function playAmidakujiEffect(prize) {
       const result = document.getElementById("result");
-      result.innerHTML = "🎁 開封中…";
+      result.innerHTML = "🎯 あみだくじ進行中…";
+      result.classList.add("amidakuji");
 
       setTimeout(() => {
+        result.classList.remove("amidakuji");
         result.innerHTML = "🎉 抽選結果： " + prize;
-      }, 2000);
+      }, 2800);
     }
 
     /* 抽選ロジック（既存） */
