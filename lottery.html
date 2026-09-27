@@ -404,28 +404,58 @@ function playRandomEffect(prize){
 }
 
 /* ▼ 抽選ボタン */
-document.getElementById("start").addEventListener("click",async()=>{
+document.getElementById("start").addEventListener("click", async () => {
   localStorage.removeItem("lastDocId");
 
-  let prize="";
-  const r=Math.random();
+  // ▼ 在庫がある景品だけを抽選候補に入れる
+  const candidates = [];
 
-  if(r<0.1 && await getStock("microSD")>0){ prize="マイクロSDカード"; await decreaseStock("microSD"); await checkHot("microSD"); }
-  else if(r<0.2 && await getStock("bottle")>0){ prize="水筒"; await decreaseStock("bottle"); await checkHot("bottle"); }
-  else if(await getStock("tote")>0){ prize="トートバッグ"; await decreaseStock("tote"); await checkHot("tote"); }
-  else if(await getStock("memo500")>0){ prize="SDカード型メモ"; await decreaseStock("memo500"); await checkHot("memo500"); }
-  else if(await getStock("memo100")>0){ prize="SDカード型付箋"; await decreaseStock("memo100"); await checkHot("memo100"); }
-  else prize="景品終了";
+  if (await getStock("microSD") > 0) candidates.push("マイクロSDカード");
+  if (await getStock("bottle") > 0) candidates.push("水筒");
+  if (await getStock("tote") > 0) candidates.push("トートバッグ");
+  if (await getStock("memo500") > 0) candidates.push("SDカード型メモ");
+  if (await getStock("memo100") > 0) candidates.push("SDカード型付箋");
 
+  let prize = "";
+
+  // ▼ 在庫が全て 0 の場合
+  if (candidates.length === 0) {
+    prize = "景品終了";
+  } else {
+    // ▼ 在庫がある景品からランダムに選ぶ
+    prize = candidates[Math.floor(Math.random() * candidates.length)];
+
+    // ▼ 選んだ景品の在庫を減らす
+    const stockIdMap = {
+      "マイクロSDカード": "microSD",
+      "水筒": "bottle",
+      "トートバッグ": "tote",
+      "SDカード型メモ": "memo500",
+      "SDカード型付箋": "memo100"
+    };
+
+    await decreaseStock(stockIdMap[prize]);
+    await checkHot(stockIdMap[prize]);
+  }
+
+  // ▼ ランダム演出
   playRandomEffect(prize);
 
-  document.getElementById("staffConfirm").style.display="block";
+  // ▼ スタッフ確認ボタン表示
+  document.getElementById("staffConfirm").style.display = "block";
 
-  const newDoc=await addDoc(collection(db,"survey"),{
-    prize, received:"no", entryNumber:null, timestamp:new Date()
+  // ▼ Firestore 保存
+  const newDoc = await addDoc(collection(db, "survey"), {
+    prize,
+    received: "no",
+    entryNumber: null,
+    timestamp: new Date()
   });
-  localStorage.setItem("lastDocId",newDoc.id);
+
+  localStorage.setItem("lastDocId", newDoc.id);
 });
+
+
 
 /* ▼ スタッフ確認 */
 document.getElementById("staffConfirm").addEventListener("click",async()=>{
