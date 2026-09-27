@@ -1,5 +1,3 @@
-<!DOCTYPE html>
-<html lang="ja">
 <head>
 <meta charset="UTF-8">
 <title>抽選ページ</title>
@@ -29,20 +27,25 @@ button:hover { transform: scale(1.05); }
   margin-top: 20px;
 }
 
-/* ▼ ルーレット（本物仕様） */
+/* ▼ ルーレット（矢印ズレ修正＋当たり光） */
+.rouletteContainer {
+  width:240px;
+  height:240px;
+  margin:20px auto;
+  position:relative;
+  display:none;
+}
 .roulettePointer {
   display:none;
   width:0; height:0;
   border-left:15px solid transparent;
   border-right:15px solid transparent;
   border-top:25px solid gold;
-  margin:0 auto;
-  position:relative;
-  top:-25px;   /* ← ルーレットに密着 */
+  position:absolute;
+  top:-8px;
+  left:50%;
+  transform:translateX(-50%);
   z-index:20;
-}
-.rouletteContainer {
-  width:240px; height:240px; margin:20px auto; display:none;
 }
 .rouletteWheel {
   width:100%; height:100%; border-radius:50%;
@@ -59,7 +62,7 @@ button:hover { transform: scale(1.05); }
   transform:rotate(0deg);
 }
 
-/* ▼ スロット（ゆっくり回転＋カチッ停止） */
+/* ▼ スロット */
 .slotMachine { display:none; justify-content:center; gap:15px; margin:20px; }
 .reel {
   width:80px; height:100px;
@@ -72,7 +75,7 @@ button:hover { transform: scale(1.05); }
 .spinAnim { animation:reelSpin 0.18s linear infinite; }
 @keyframes reelSpin { 0%{transform:translateY(0);} 100%{transform:translateY(-15px);} }
 
-/* ▼ あみだくじ（横移動表示＋ゴール後点滅） */
+/* ▼ あみだくじ（赤線＋10秒進行＋ゴール後5秒点滅） */
 #amidakujiCanvas {
   border:2px solid #aaa;
   margin:20px auto;
@@ -80,7 +83,7 @@ button:hover { transform: scale(1.05); }
   background:#fff;
 }
 .amidGoals {
-  display:flex; /* ← スタート時に表示 */
+  display:none; /* ← 最初は非表示（A仕様） */
   justify-content:space-between;
   width:320px;
   margin:8px auto;
@@ -109,7 +112,6 @@ button:hover { transform: scale(1.05); }
 #hotBanner,#rareBanner { margin-top:10px; display:none; }
 </style>
 </head>
-
 <body>
 
 <h1>抽選ページ</h1>
@@ -119,8 +121,8 @@ button:hover { transform: scale(1.05); }
 <div id="result" style="margin-top:20px; font-size:20px;"></div>
 
 <!-- ▼ ルーレット -->
-<div class="roulettePointer"></div>
 <div class="rouletteContainer" id="rouletteBox">
+  <div class="roulettePointer"></div>
   <div class="rouletteWheel" id="rouletteWheel"></div>
 </div>
 
@@ -146,8 +148,8 @@ button:hover { transform: scale(1.05); }
 
 <button id="staffConfirm">説明員が確認しました</button>
 
+</body>
 <script type="module">
-/* ▼ Firebase */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, doc, updateDoc, getDoc, addDoc, setDoc }
   from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
@@ -186,9 +188,10 @@ function hideAllEffects(){
   document.getElementById("slotBox").style.display="none";
   document.getElementById("amidakujiCanvas").style.display="none";
   document.querySelector(".roulettePointer").style.display="none";
+  document.querySelector(".amidGoals").style.display="none";
 }
 
-/* ▼ ルーレット（本物仕様） */
+/* ▼ ルーレット */
 function playRouletteVegas(prize){
   hideAllEffects();
   const wheel=document.getElementById("rouletteWheel");
@@ -221,13 +224,12 @@ function playRouletteVegas(prize){
       result.innerHTML="🎉 抽選結果： "+prize;
       result.classList.add("resultPop");
 
-      /* 当たり光 → ポインタ直下だけ */
-      wheel.style.boxShadow="0 -25px 25px gold";
+      wheel.style.boxShadow="0 -35px 25px gold"; /* ← 当たり光（ポインタ直下） */
     },4500);
   },50);
 }
 
-/* ▼ スロット（ゆっくり＋カチッ） */
+/* ▼ スロット */
 function playSlotEffect(prize){
   hideAllEffects();
   const r1=document.getElementById("reel1");
@@ -262,7 +264,7 @@ function playSlotEffect(prize){
   },3000);
 }
 
-/* ▼ あみだくじ（10秒移動＋ゴール後5秒点滅） */
+/* ▼ あみだくじ（赤線＋10秒進行＋ゴール後5秒点滅＋結果一致） */
 const prizeNames=["マイクロSDカード","水筒","トートバッグ","SDカード型メモ","SDカード型付箋"];
 
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -312,13 +314,16 @@ function playAmidakujiEffect(prize){
   result.innerHTML="🎯 あみだくじ進行中…";
 
   const w=canvas.width, h=canvas.height, cols=5;
-  setupAmidGoals();
+  const goals=setupAmidGoals();
+  const prizeIndex=goals.indexOf(prize); /* ← 結果とゴール一致 */
+
   const bars=generateBars(cols,h);
   const colX=drawBase(ctx,cols,w,h,bars);
 
-  ctx.strokeStyle="#00aaff"; ctx.lineWidth=4;
+  ctx.strokeStyle="#ff0000"; /* ← 赤色に変更 */
+  ctx.lineWidth=4;
 
-  let col=Math.floor(Math.random()*cols);
+  let col=prizeIndex; /* ← prize の列からスタート */
   let y=10;
 
   const interval=setInterval(()=>{
@@ -340,7 +345,6 @@ function playAmidakujiEffect(prize){
     if(y>=h-10){
       clearInterval(interval);
 
-      /* ゴール後5秒点滅 */
       canvas.style.animation="amidBlink 0.8s infinite";
 
       setTimeout(()=>{
@@ -403,6 +407,3 @@ document.getElementById("staffConfirm").addEventListener("click",async()=>{
   await updateDoc(docRef,{received:"yes",entryNumber:num});
 });
 </script>
-
-</body>
-</html>
