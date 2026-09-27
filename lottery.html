@@ -8,8 +8,30 @@
 <style>
 body { font-family: system-ui; text-align:center; background:#e6f4ff; }
 
+/* ▼ ボタン（大きく・太く・押しやすく） */
+button {
+  font-size: 26px;
+  padding: 20px 45px;
+  border-radius: 14px;
+  border: none;
+  background: #007bff;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  transition: transform 0.1s ease;
+}
+button:hover { transform: scale(1.05); }
+
+#staffConfirm {
+  background: #28a745;
+  display:none;
+  margin-top: 20px;
+}
+
 /* ▼ ルーレット（本物仕様） */
 .roulettePointer {
+  display:none; /* ← 最初は非表示 */
   width:0; height:0;
   border-left:15px solid transparent;
   border-right:15px solid transparent;
@@ -30,7 +52,7 @@ body { font-family: system-ui; text-align:center; background:#e6f4ff; }
     #c00 300deg 330deg, #000 330deg 360deg
   );
   border:8px solid gold;
-  box-shadow:0 0 25px rgba(255,215,0,0.7);
+  box-shadow:none; /* ← 通常時は光らない */
   transform:rotate(0deg);
 }
 
@@ -48,8 +70,18 @@ body { font-family: system-ui; text-align:center; background:#e6f4ff; }
 @keyframes reelSpin { 0%{transform:translateY(0);} 100%{transform:translateY(-15px);} }
 
 /* ▼ あみだくじ（横移動表示＋ゴール消去） */
-#amidakujiCanvas { border:2px solid #aaa; margin-top:20px; display:none; background:#fff; }
-.amidGoals { display:flex; justify-content:space-between; width:320px; margin:8px auto; }
+#amidakujiCanvas {
+  border:2px solid #aaa;
+  margin:20px auto; /* ← 中央寄せ */
+  display:none;
+  background:#fff;
+}
+.amidGoals {
+  display:none; /* ← 最初は非表示 */
+  justify-content:space-between;
+  width:320px;
+  margin:8px auto;
+}
 .amidGoalIcon {
   width:55px; height:32px; border-radius:8px;
   background:radial-gradient(circle,#fff,#ddd,#999);
@@ -102,9 +134,7 @@ body { font-family: system-ui; text-align:center; background:#e6f4ff; }
 <div id="hotBanner">🔥 激熱チャンス！残りわずか！ 🔥</div>
 <div id="rareBanner">🎉 超レア景品当選！ 🎉</div>
 
-<button id="staffConfirm" style="display:none; margin-top:20px;">
-  説明員が確認しました
-</button>
+<button id="staffConfirm">説明員が確認しました</button>
 
 <script type="module">
 /* ▼ Firebase */
@@ -145,6 +175,8 @@ function hideAllEffects(){
   document.getElementById("rouletteBox").style.display="none";
   document.getElementById("slotBox").style.display="none";
   document.getElementById("amidakujiCanvas").style.display="none";
+  document.querySelector(".roulettePointer").style.display="none";
+  document.querySelector(".amidGoals").style.display="none";
 }
 
 /* ▼ ルーレット（本物仕様） */
@@ -152,7 +184,10 @@ function playRouletteVegas(prize){
   hideAllEffects();
   const wheel=document.getElementById("rouletteWheel");
   const result=document.getElementById("result");
+
   document.getElementById("rouletteBox").style.display="block";
+  document.querySelector(".roulettePointer").style.display="block";
+
   result.innerHTML="🎰 ルーレット回転中…";
 
   const angles={
@@ -167,7 +202,7 @@ function playRouletteVegas(prize){
 
   wheel.style.transition="none";
   wheel.style.transform="rotate(0deg)";
-  wheel.style.boxShadow="0 0 25px rgba(255,215,0,0.7)";
+  wheel.style.boxShadow="none";
 
   setTimeout(()=>{
     wheel.style.transition="transform 4.5s cubic-bezier(0.05,0.9,0.1,1)";
@@ -176,7 +211,9 @@ function playRouletteVegas(prize){
     setTimeout(()=>{
       result.innerHTML="🎉 抽選結果： "+prize;
       result.classList.add("resultPop");
-      wheel.style.boxShadow="0 0 25px gold, inset 0 0 20px gold";
+
+      /* 当たり光 → ポインタ下だけ */
+      wheel.style.boxShadow="0 -20px 25px gold";
     },4500);
   },50);
 }
@@ -188,6 +225,7 @@ function playSlotEffect(prize){
   const r2=document.getElementById("reel2");
   const r3=document.getElementById("reel3");
   const result=document.getElementById("result");
+
   document.getElementById("slotBox").style.display="flex";
   result.innerHTML="🎰 スロット回転中…";
 
@@ -259,6 +297,8 @@ function playAmidakujiEffect(prize){
   const result=document.getElementById("result");
 
   canvas.style.display="block";
+  document.querySelector(".amidGoals").style.display="flex";
+
   result.innerHTML="🎯 あみだくじ進行中…";
 
   const w=canvas.width, h=canvas.height, cols=5;
@@ -290,7 +330,8 @@ function playAmidakujiEffect(prize){
     if(y>=h-10){
       clearInterval(interval);
 
-      for(let i=0;i<5;i++) document.getElementById("goal"+i).textContent="";
+      /* ゴールラベル消去 */
+      document.querySelector(".amidGoals").style.display="none";
 
       result.innerHTML="🎉 抽選結果： "+prize;
       result.classList.add("resultPop");
