@@ -31,12 +31,15 @@ button:hover { transform: scale(1.05); }
 
 /* ▼ ルーレット（本物仕様） */
 .roulettePointer {
-  display:none; /* ← 最初は非表示 */
+  display:none;
   width:0; height:0;
   border-left:15px solid transparent;
   border-right:15px solid transparent;
-  border-top:25px solid gold; /* 下向き矢印 */
-  margin:0 auto; position:relative; top:-10px; z-index:10;
+  border-top:25px solid gold;
+  margin:0 auto;
+  position:relative;
+  top:-25px;   /* ← ルーレットに密着 */
+  z-index:20;
 }
 .rouletteContainer {
   width:240px; height:240px; margin:20px auto; display:none;
@@ -52,7 +55,7 @@ button:hover { transform: scale(1.05); }
     #c00 300deg 330deg, #000 330deg 360deg
   );
   border:8px solid gold;
-  box-shadow:none; /* ← 通常時は光らない */
+  box-shadow:none;
   transform:rotate(0deg);
 }
 
@@ -69,15 +72,15 @@ button:hover { transform: scale(1.05); }
 .spinAnim { animation:reelSpin 0.18s linear infinite; }
 @keyframes reelSpin { 0%{transform:translateY(0);} 100%{transform:translateY(-15px);} }
 
-/* ▼ あみだくじ（横移動表示＋ゴール消去） */
+/* ▼ あみだくじ（横移動表示＋ゴール後点滅） */
 #amidakujiCanvas {
   border:2px solid #aaa;
-  margin:20px auto; /* ← 中央寄せ */
+  margin:20px auto;
   display:none;
   background:#fff;
 }
 .amidGoals {
-  display:none; /* ← 最初は非表示 */
+  display:flex; /* ← スタート時に表示 */
   justify-content:space-between;
   width:320px;
   margin:8px auto;
@@ -86,6 +89,13 @@ button:hover { transform: scale(1.05); }
   width:55px; height:32px; border-radius:8px;
   background:radial-gradient(circle,#fff,#ddd,#999);
   display:flex; align-items:center; justify-content:center; font-size:10px;
+}
+
+/* ▼ ゴール後点滅 */
+@keyframes amidBlink {
+  0% { opacity: 1; }
+  50% { opacity: 0.2; }
+  100% { opacity: 1; }
 }
 
 /* ▼ 結果ポップ */
@@ -176,7 +186,6 @@ function hideAllEffects(){
   document.getElementById("slotBox").style.display="none";
   document.getElementById("amidakujiCanvas").style.display="none";
   document.querySelector(".roulettePointer").style.display="none";
-  document.querySelector(".amidGoals").style.display="none";
 }
 
 /* ▼ ルーレット（本物仕様） */
@@ -212,8 +221,8 @@ function playRouletteVegas(prize){
       result.innerHTML="🎉 抽選結果： "+prize;
       result.classList.add("resultPop");
 
-      /* 当たり光 → ポインタ下だけ */
-      wheel.style.boxShadow="0 -20px 25px gold";
+      /* 当たり光 → ポインタ直下だけ */
+      wheel.style.boxShadow="0 -25px 25px gold";
     },4500);
   },50);
 }
@@ -253,7 +262,7 @@ function playSlotEffect(prize){
   },3000);
 }
 
-/* ▼ あみだくじ（横移動表示＋ゴール消去） */
+/* ▼ あみだくじ（10秒移動＋ゴール後5秒点滅） */
 const prizeNames=["マイクロSDカード","水筒","トートバッグ","SDカード型メモ","SDカード型付箋"];
 
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -292,6 +301,7 @@ function drawBase(ctx,cols,w,h,bars){
 
 function playAmidakujiEffect(prize){
   hideAllEffects();
+
   const canvas=document.getElementById("amidakujiCanvas");
   const ctx=canvas.getContext("2d");
   const result=document.getElementById("result");
@@ -312,7 +322,7 @@ function playAmidakujiEffect(prize){
   let y=10;
 
   const interval=setInterval(()=>{
-    ctx.beginPath(); ctx.moveTo(colX[col],y); y+=6; ctx.lineTo(colX[col],y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(colX[col],y); y+=2; ctx.lineTo(colX[col],y); ctx.stroke();
 
     for(const bar of bars){
       if(Math.abs(bar.y-y)<4){
@@ -330,13 +340,19 @@ function playAmidakujiEffect(prize){
     if(y>=h-10){
       clearInterval(interval);
 
-      /* ゴールラベル消去 */
-      document.querySelector(".amidGoals").style.display="none";
+      /* ゴール後5秒点滅 */
+      canvas.style.animation="amidBlink 0.8s infinite";
 
-      result.innerHTML="🎉 抽選結果： "+prize;
-      result.classList.add("resultPop");
+      setTimeout(()=>{
+        canvas.style.animation="none";
+
+        result.innerHTML="🎉 抽選結果： "+prize;
+        result.classList.add("resultPop");
+
+        document.querySelector(".amidGoals").style.display="none";
+      },5000);
     }
-  },40);
+  },80); /* ← ゆっくり進む（約10秒） */
 }
 
 /* ▼ ランダム演出 */
