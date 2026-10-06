@@ -549,7 +549,7 @@ document.getElementById("start").addEventListener("click", async () => {
 /* ▼ スタッフ確認 */
 document.getElementById("staffConfirm").addEventListener("click",async()=>{
   const code=prompt("スタッフ確認コードを入力してください:");
-  if(code!=="DX2026") return alert("コードが違います");
+  if(code!=="o") return alert("コードが違います");
 
   const docRef=doc(db,"survey",localStorage.getItem("lastDocId"));
   const counterRef=doc(db,"meta","entryCounter");
