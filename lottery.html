@@ -596,9 +596,13 @@ function playGachagachaEffect(prize){
     area.appendChild(c);
   }
 
-  // 回転アニメーション
-  area.style.transition="transform 1.2s ease";
-  area.style.transform="rotate(720deg)";
+  // 回転アニメーション（カプセルを回す）
+  for (let i = 0; i < area.children.length; i++) {
+    const c = area.children[i];
+    c.style.transition = "transform 1.2s ease";
+    c.style.transform = "rotate(720deg)";
+  }
+
 
   // 最後に1つ落とす
   setTimeout(()=>{
@@ -636,9 +640,16 @@ function playFukubikiEffect(prize){
   }
 
   // ハンドル回転
-  const handle=document.querySelector(".fukubikiHandle");
   handle.style.transition="transform 1.2s ease";
   handle.style.transform="rotate(720deg)";
+
+  // 玉も回す
+  for (let i = 0; i < area.children.length; i++) {
+    const b = area.children[i];
+    b.style.transition = "transform 1.2s ease";
+    b.style.transform = "rotate(720deg)";
+  }
+
 
   // 最後に1つ落とす
   setTimeout(()=>{
