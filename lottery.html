@@ -120,6 +120,79 @@ button:hover { transform: scale(1.05); }
   100%{transform:scale(1);}
 }
 
+/* ▼ ガチャガチャ */
+.gachaMachine {
+  width: 260px;
+  height: 300px;
+  margin: 20px auto;
+  position: relative;
+}
+
+.gachaDome {
+  width: 200px;
+  height: 200px;
+  background: #eee;
+  border-radius: 50%;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+#gachaCapsules .capsule {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.gachaExit {
+  width: 80px;
+  height: 40px;
+  background: #ccc;
+  margin: 10px auto;
+  border-radius: 10px;
+}
+/* ▼ 福引き */
+.fukubikiMachine {
+  width: 260px;
+  height: 300px;
+  margin: 20px auto;
+  position: relative;
+}
+
+.fukubikiBody {
+  width: 200px;
+  height: 200px;
+  background: #eee;
+  border-radius: 20px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+#fukubikiBalls .ball {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.fukubikiHandle {
+  width: 40px;
+  height: 40px;
+  background: #aaa;
+  border-radius: 50%;
+  margin: 10px auto;
+}
+
+.fukubikiExit {
+  width: 80px;
+  height: 40px;
+  background: #ccc;
+  margin: 10px auto;
+  border-radius: 10px;
+}
+
 #hotBanner,#rareBanner { margin-top:10px; display:none; }
 </style>
 </head>
