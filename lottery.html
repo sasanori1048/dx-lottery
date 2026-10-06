@@ -393,15 +393,6 @@ function playAmidakujiEffect(prize){
   },80);
 }
 
-/* ▼ ランダム演出 */
-function playRandomEffect(prize){
-  hideAllEffects();
-  const e=["roulette","slot","amid"];
-  const c=e[Math.floor(Math.random()*e.length)];
-  if(c==="roulette") playRouletteVegas(prize);
-  else if(c==="slot") playSlotEffect(prize);
-  else playAmidakujiEffect(prize);
-}
 
 /* ▼ 抽選ボタン */
 document.getElementById("start").addEventListener("click", async () => {
