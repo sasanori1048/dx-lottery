@@ -470,7 +470,7 @@ document.getElementById("staffConfirm").addEventListener("click",async()=>{
   await setDoc(counterRef,{lastNumber:num});
   await updateDoc(docRef,{received:"yes",entryNumber:num});
 });
-</script>
+
 /* ▼▼▼ ガチャガチャ・福引き用カラー変換 ▼▼▼ */
 const prizeColorMap = {
   microSD: "red",
@@ -574,3 +574,4 @@ function playRandomEffect(prize){
   const f=effects[Math.floor(Math.random()*effects.length)];
   f(prize);
 }
+</script>
