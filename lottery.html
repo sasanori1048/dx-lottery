@@ -471,3 +471,106 @@ document.getElementById("staffConfirm").addEventListener("click",async()=>{
   await updateDoc(docRef,{received:"yes",entryNumber:num});
 });
 </script>
+/* ▼▼▼ ガチャガチャ・福引き用カラー変換 ▼▼▼ */
+const prizeColorMap = {
+  microSD: "red",
+  bottle: "blue",
+  tote: "green",
+  memo500: "yellow",
+  memo100: "white"
+};
+
+/* ▼▼▼ ガチャガチャ演出 ▼▼▼ */
+function playGachagachaEffect(prize){
+  hideAllEffects();
+  const box=document.getElementById("gachaEffect");
+  box.style.display="block";
+
+  const area=document.getElementById("gachaCapsules");
+  area.innerHTML="";
+
+  const color=prizeColorMap[{
+    "マイクロSDカード":"microSD",
+    "水筒":"bottle",
+    "トートバッグ":"tote",
+    "SDカード型メモ":"memo500",
+    "SDカード型付箋":"memo100"
+  }[prize]];
+
+  // カプセル生成
+  for(let i=0;i<8;i++){
+    const c=document.createElement("div");
+    c.className="capsule";
+    c.style.background=color;
+    c.style.left=Math.random()*200+"px";
+    c.style.top=Math.random()*200+"px";
+    area.appendChild(c);
+  }
+
+  // 回転アニメーション
+  area.style.transition="transform 1.2s ease";
+  area.style.transform="rotate(720deg)";
+
+  // 最後に1つ落とす
+  setTimeout(()=>{
+    const last=area.children[0];
+    last.style.top="260px";
+    last.style.left="110px";
+  },1200);
+}
+
+/* ▼▼▼ 福引き演出 ▼▼▼ */
+function playFukubikiEffect(prize){
+  hideAllEffects();
+  const box=document.getElementById("fukubikiEffect");
+  box.style.display="block";
+
+  const area=document.getElementById("fukubikiBalls");
+  area.innerHTML="";
+
+  const color=prizeColorMap[{
+    "マイクロSDカード":"microSD",
+    "水筒":"bottle",
+    "トートバッグ":"tote",
+    "SDカード型メモ":"memo500",
+    "SDカード型付箋":"memo100"
+  }[prize]];
+
+  // 玉生成
+  for(let i=0;i<6;i++){
+    const b=document.createElement("div");
+    b.className="ball";
+    b.style.background=color;
+    b.style.left=Math.random()*160+"px";
+    b.style.top=Math.random()*160+"px";
+    area.appendChild(b);
+  }
+
+  // ハンドル回転
+  const handle=document.querySelector(".fukubikiHandle");
+  handle.style.transition="transform 1.2s ease";
+  handle.style.transform="rotate(720deg)";
+
+  // 最後に1つ落とす
+  setTimeout(()=>{
+    const last=area.children[0];
+    last.style.top="220px";
+    last.style.left="85px";
+  },1200);
+}
+
+/* ▼▼▼ ランダム演出（5種類に拡張） ▼▼▼ */
+function playRandomEffect(prize){
+  hideAllEffects();
+
+  const effects=[
+    playRouletteVegas,
+    playSlotEffect,
+    playAmidakujiEffect,
+    playGachagachaEffect,
+    playFukubikiEffect
+  ];
+
+  const f=effects[Math.floor(Math.random()*effects.length)];
+  f(prize);
+}
